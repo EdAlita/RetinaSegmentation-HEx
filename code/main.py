@@ -3,7 +3,7 @@ import cv2
 import logging
 import time
 
-timestr = time.strftime("%Y%m%d-%H%M%S")
+timestr = time.strftime("%m%d%Y-%H%M%S")
 
 logging.basicConfig(filename=timestr+".log", level=logging.DEBUG)
 

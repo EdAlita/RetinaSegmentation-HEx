@@ -3,6 +3,7 @@
 * [Technologies](#technologies)
 * [Authors](#authors)
 * [Setup](#setup)
+* [FAQ](#faq)
 
 ## General Info
 This project focus on the Image analysis of retinal color fundus images. The
@@ -36,6 +37,34 @@ Colabolators in the project:
         * logging
         * time
 * First create a file name main.cfg in the next route /code/main.cfg. The first line of the location of the test folder images in your local machine and the second is the trainning.
+
+## FAQ
+
+### How to log in our project?
+
+The logging capabilty pf pur project is to get a runtime history of the code and help us on debuging code. The file should be cretaed in the next structure:
+
+├── code
+│   ├── 03282023-124502.log
+│   ├── main.cfg
+│   └── main.py
+
+Each time that you run the main.py a file is created under the code folder. The name of the file has the next structure:  month+day+year-hour+minute+second.log
+
+You don't need to install a library for this is a build in fucntion of vanilla python.
+
+You can use the next function to log your functions
+
+|Logging function                                                     |Use                                                                             |
+|:---                                                                 |:---                                                                            |
+|logging.debug("Debug logging test...")                               | Use this one to mark the flow of our program.                                  |
+|logging.info("Program is working as expected")                       | Use when you make a change to the images, to see if they affect all the images |
+|logging.warning("Warning, the program may not function properly")    | No use so far                                                                  |
+|logging.error("The program encountered an error")                    | No use so far                                                                  |
+|logging.critical("The program crashed")                              | No use so far                                                                  |
+
+
+
 
 
 
