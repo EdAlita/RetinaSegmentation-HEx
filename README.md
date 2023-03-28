@@ -78,8 +78,8 @@ After that you need to setup your credentials in your local github instalation, 
 
 * Change the email and username to the ones that you have in github with:
     1. Open your terminal and navigate to your git repository.
-    2. Change Git user name by running: git config --global user.name “Your Name”
-    3. Change Git user email by running: git config --global user.email “name@email.com”
+    2. Change Git user name by running: `git config --global user.name “Your Name”`
+    3. Change Git user email by running: `git config --global user.email “name@email.com”`
     4. Check the config with:
         * git config --list
 
@@ -95,7 +95,7 @@ After that you need to setup your credentials in your local github instalation, 
     5. Pull lastest change to avoid merging problems with `git pull`
     6. push your changes with `git push`
 
-==If you fell confortable on using branches, please remeber to merge them to the main one==
+> If you fell confortable on using branches, please remeber to merge them to the main one
 
 
 
