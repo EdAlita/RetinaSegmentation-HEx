@@ -2,9 +2,7 @@
 * [General info](#general-info)
 * [Technologies](#technologies)
 * [Authors](#authors)
-* [Setup](#setup)
-* [To Do's](#todo)
-* [FAQ](#faq)
+
 
 ## General Info
 This project focus on the Image analysis of retinal color fundus images. The
