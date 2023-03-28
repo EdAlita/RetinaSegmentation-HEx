@@ -3,6 +3,7 @@
 * [Technologies](#technologies)
 * [Authors](#authors)
 * [Setup](#setup)
+* [To Do's](#todo)
 * [FAQ](#faq)
 
 ## General Info
@@ -37,6 +38,14 @@ Colabolators in the project:
         * logging
         * time
 * First create a file name main.cfg in the next route /code/main.cfg. The first line of the location of the test folder images in your local machine and the second is the trainning.
+## TO DO's
+
+- [ ] Vein extraction
+- [ ] Filters of the Eye Image to enhance hard and soft Exodus
+- [ ] Binarization of the Image and obtain area of the hard and soft Exodus
+- [ ] Evaluate which MAchine Learning tool to use
+- [ ] How to evaluate or model
+- [ ] The documentation?
 
 ## FAQ
 
@@ -44,10 +53,7 @@ Colabolators in the project:
 
 The logging capabilty pf pur project is to get a runtime history of the code and help us on debuging code. The file should be cretaed in the next structure:
 
-├── code
-│   ├── 03282023-124502.log
-│   ├── main.cfg
-│   └── main.py
+/code/03282023-124502.log
 
 Each time that you run the main.py a file is created under the code folder. The name of the file has the next structure:  month+day+year-hour+minute+second.log
 
