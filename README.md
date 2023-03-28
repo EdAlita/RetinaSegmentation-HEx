@@ -18,6 +18,7 @@ precision-recall curve (AUPR).
 ## Technologies
 Project is created with: 
 * Python 3.10.6
+* OpenCV 
 * Machine Learning ucasML
 
 ## Authors
@@ -28,6 +29,15 @@ Colabolators in the project:
 * [Taibur]()
 
 ## Setup
-(insert how to run the project)
+* Install sofware dependencies that are mention in the Technologies
+    * Install the next libraries in python:
+        * Glob
+        * cv2
+        * logging
+        * time
+* First create a file name main.cfg in the next route /code/main.cfg. The first line of the location of the test folder images in your local machine and the second is the trainning.
+
+
+
 
 
