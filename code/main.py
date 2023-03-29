@@ -50,7 +50,7 @@ Path to training images
 
 """
 #Define of the local functions
-#hola
+
 def RGB2Gray( img_list , type_img ):
     for i in range(0,len(img_list)):
         img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
