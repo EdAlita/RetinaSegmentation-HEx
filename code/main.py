@@ -5,8 +5,6 @@ import time
 import sys
 import os
 
-
-
 #Allow Logging function
 trash = 0
 
@@ -56,6 +54,7 @@ def RGB2Gray( img_list , type_img ):
         img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
         logging.info(type_img+" image "+str(i)+" converted to grayscale")
     return img_list
+
 def get_localDirectories ( name ):
     with open(name, 'r') as file:
         one = file.readline().rstrip()
