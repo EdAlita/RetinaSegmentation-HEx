@@ -50,9 +50,9 @@ Path to training images
 
 """
 #Define of the local functions
-
+#hola
 def RGB2Gray( img_list , type_img ):
-    for i in range(0,len(img_list)-1):
+    for i in range(0,len(img_list)):
         img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
         logging.info(type_img+" image "+str(i)+" converted to grayscale")
     return img_list
@@ -90,7 +90,7 @@ ds_tr_gs = RGB2Gray( ds_tr,"Training")
 logging.debug("Grayscale covertion finish without problems")
 
 
-#cv2.imshow('grayscale',ds_ts_gs[4])
+#.imshow('grayscale',ds_ts_gs[4])
 
 #cv2.waitKey()
 
