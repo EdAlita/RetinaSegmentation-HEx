@@ -11,6 +11,7 @@ from extendable_logger import extendable_logger
 trash = 0
 timestr = time.strftime("%m%d%Y-%H%M%S")
 
+### Creating Log only if you pass the level in command line
 if (len(sys.argv)!=1):
     trash = int(sys.argv[1])
     sfname = "main.log"
@@ -18,9 +19,13 @@ if (len(sys.argv)!=1):
     final_directory = os.path.join(current_directory,'logs',timestr)
     if not os.path.exists(final_directory):
         os.makedirs(final_directory)
-    main_logger = extendable_logger('main',"logs/"+timestr+"/"+sfname,trash)    
-    #logging.basicConfig(filename="logs/"+timestr+"/"+sfname,level=trash,format="%(asctime)s - %(levelname)s - %(message)s")
+    main_logger = extendable_logger('main',"logs/"+timestr+"/"+sfname,level=trash)
+else:
+    main_logger = extendable_logger('main',"tmp",trash)
+    main_logger.disabled = True
+    os.remove("tmp")
     
+      
 main_logger.debug("Begin of the main.py code")
 
 """
@@ -65,9 +70,7 @@ def get_localDirectories ( name ):
 
 #Open file to obtain local variables
 fname = 'main.cfg'
-
 test,training = get_localDirectories(fname)
-
 
 #Creating data sets of all the images.
 
@@ -84,14 +87,7 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 
 ###Create Preposcessing
 
-prepos(timestr,trash )
-
-#Denoising the Images
-dst = cv2.fastNlMeansDenoisingColored(ds_ts[4],None,10,10,7,21)
-
-plt.subplot(121),plt.imshow(ds_ts[4])
-plt.subplot(122),plt.imshow(dst)
-plt.show()
+ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts)
 
 
 main_logger.debug("Denoising of Images finish without problems")
