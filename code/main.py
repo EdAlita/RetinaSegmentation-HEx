@@ -7,6 +7,10 @@ import os
 from matplotlib import pyplot as plt
 from preposcessing import prepos
 from extendable_logger import extendable_logger
+from time import sleep
+from tqdm import tqdm
+
+
 #Allow Logging function
 trash = 0
 timestr = time.strftime("%m%d%Y-%H%M%S")
@@ -56,16 +60,19 @@ Path to training images
 #Define of the local functions
 
 def RGB2Gray( img_list , type_img ):
-    for i in range(0,len(img_list)):
-        img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
-        main_logger.info(type_img+" image "+str(i)+" converted to grayscale")
+    with tqdm(total=len(img_list),desc="Grayscale of "+type_img) as pbar:
+        for i in range(0,len(img_list)):
+            img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
+            main_logger.info(type_img+" image "+str(i)+" converted to grayscale")
+            pbar.update(i)
+            time.sleep(0.01)
     return img_list
+
 def get_localDirectories ( name ):
     with open(name, 'r') as file:
         one = file.readline().rstrip()
         two = file.readline().rstrip()
-        main_logger.debug("Program open the cfg file")
-        
+        main_logger.debug("Program open the cfg file")   
     return one,two
 
 #Open file to obtain local variables
@@ -88,10 +95,10 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 ###Create Preposcessing
 
 ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts)
+ds_tr_pp = prepos(timestr,trash,"Trainning",ds_tr)
 
-
-main_logger.debug("Denoising of Images finish without problems")
-#Convert to gray scale.    
+#main_logger.debug("Denoising of Images finish without problems")
+#Convert to gray scale.   
 ds_ts_gs = RGB2Gray( ds_ts,"Testing")
 ds_tr_gs = RGB2Gray( ds_tr,"Training")
 

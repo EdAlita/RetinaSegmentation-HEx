@@ -5,7 +5,8 @@ import time
 import sys
 import os
 from extendable_logger import extendable_logger
-
+from time import sleep
+from tqdm import tqdm
 
 def prepos(timestr,trash,dname,data,intermedateResult=None):
     bus = data
@@ -18,9 +19,11 @@ def prepos(timestr,trash,dname,data,intermedateResult=None):
     pre_logger.debug("Begin of the prepos.py code")
     
     #Denoising the Images
-    for i in range(0,len(data)-1):
-        bus[i] = cv2.fastNlMeansDenoisingColored(data[i],None,10,10,7,21)
-        pre_logger.info(dname+" image "+str(i)+" Denoising")
+    with tqdm(total=len(data)-1,desc="Denoising of "+dname) as pbar:
+        for i in range(0,len(data)-1):
+            bus[i] = cv2.fastNlMeansDenoisingColored(data[i],None,10,10,7,21)
+            pre_logger.info(dname+" image "+str(i)+" Denoising")
+            pbar.update(1)
 
     if(intermedateResult!=None):
         plt.subplot(121),plt.imshow(data[intermedateResult])
