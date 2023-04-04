@@ -15,6 +15,8 @@ def prepos(timestr,trash,dname,data,intermedateResult=None):
     bus = []
     cli= []
     green_ch = []
+    
+    #logger
     if (trash!=0):
         pre_logger = extendable_logger('preposcessing',"logs/"+timestr+"/"+dname+"prepos.log",level=trash)
     else:
@@ -51,7 +53,7 @@ def prepos(timestr,trash,dname,data,intermedateResult=None):
             pre_logger.info(dname+" image "+str(i)+" Denoising")
             pbar.update(1)
     
-    #
+    #Printing intermedated Results
     if(intermedateResult!=None):
         
         plt.subplot(131),plt.imshow(cv2.cvtColor(data[intermedateResult], cv2.COLOR_BGR2RGB))
