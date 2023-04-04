@@ -60,7 +60,10 @@ def prepos(timestr,trash,dname,data,intermedateResult=None):
         plt.title("CLAHE")
         plt.subplot(133),plt.imshow(cv2.cvtColor(bus[intermedateResult], cv2.COLOR_BGR2RGB))
         plt.title("Denoising")
-        plt.show()
+        
+        plt.savefig("logs/"+timestr+"/PreposcessingResults"+str(intermedateResult)+".pdf")
+        
+        
     
     pre_logger.debug("The code run was sucessful")
     pre_logger.debug("exit code 0")

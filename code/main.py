@@ -11,17 +11,23 @@ from eye_fundus_mask import mask
 from time import sleep
 from tqdm import tqdm
 import numpy as np
+import argparse
+
+###Parsing 
+parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
+parser.add_argument("-l", "--level", default=0,help='level of the internal logger (default: 0 , will not create logs)For more help check wiki on loggers for the correct value.')
+parser.add_argument("-ir","--intermedateresults", default=None,help='Creates intermedate results of the number that you provide.Store them in Log folder. Provide a number')
+args = parser.parse_args()
 
 #Allow Logging function
-trash = 0
+trash = int(args.level)
 timestr = time.strftime("%m%d%Y-%H%M%S")
 
 ### Creating Log only if you pass the level in command line
-if (len(sys.argv)!=1):
-    trash = int(sys.argv[1])
+if (trash!=0):
     sfname = "main.log"
     current_directory = os.getcwd()
-    final_directory = os.path.join(current_directory,'logs',timestr)
+    final_directory = os.path.join(current_directory,'logs',timestr) 
     if not os.path.exists(final_directory):
         os.makedirs(final_directory)
     main_logger = extendable_logger('main',"logs/"+timestr+"/"+sfname,level=trash)
@@ -109,11 +115,10 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 
 
 ###Create Preposcessing
-ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[0:6],intermedateResult=4)
+ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[0:6],intermedateResult=int(args.intermedateresults))
 #ds_tr_pp = prepos(timestr,trash,"Trainning",ds_tr)
 ###Creating Mask
-#ds_ts_mask = mask(timestr,trash,"Testing",ds_ts_pp[0:6],intermedateResult=len(ds_ts_pp[0:6]))
-#main_logger.debug("Denoising of Images finish without problems")
+main_logger.debug("Preprocessing had finnish")
 
 
 #main_logger.debug("Grayscale covertion finish without problems")
