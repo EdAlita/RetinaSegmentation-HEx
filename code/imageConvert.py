@@ -19,8 +19,8 @@ class imagecvt:
             self.logg.add_info(type_img+" image "+str(i)+" converted to grayscale")
         return img_list
 
-    def get_localDirectories (self ):
-        with open(os.getcwd()+"/code/main.cfg", 'r') as file:
+    def get_localDirectories (self,name ):
+        with open(os.getcwd()+"/code/"+name, 'r') as file:
             one = file.readline().rstrip()
             two = file.readline().rstrip()
             self.logg.add_debug("Program open the cfg file")
@@ -30,7 +30,8 @@ class imagecvt:
 
 p1=imagecvt()
 logg=log()
-test,training = p1.get_localDirectories()
+sname='main.cfg'
+test,training = p1.get_localDirectories(sname)
 
 
 #Creating data sets of all the images.
