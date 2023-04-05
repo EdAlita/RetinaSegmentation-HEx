@@ -7,6 +7,7 @@ import os
 from proj_functions import *
 from matplotlib import pyplot as plt
 from preposcessing import prepos
+from masks import masks
 from extendable_logger import extendable_logger
 from extendable_logger import projloggger
 from time import sleep
@@ -87,7 +88,6 @@ for i in range(0,len(training_n)):
     img = cv2.imread(training+training_n[i],cv2.IMREAD_COLOR) 
     ds_tr.append(img) 
 
-print(str(ds_ts[2].shape))
 main_logger.debug("The list length of the test is "+str(len(ds_ts)))
 main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 
@@ -97,30 +97,17 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 #ds_tr_gs = RGB2Gray( ds_tr,"Training")
 
 # Now let's create a mask for this image
-def createMask(rows,cols,img):
-    # black image
-    mask = np.zeros((rows,cols,1),dtype=np.uint8)
-    # blit our contours onto it in white color
-    imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(imgray, 0, 255, 0)
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cnt = contours[0]
-    mask = cv2.drawContours(mask, [cnt], 0, (0,255,0), 3)
-    return mask
-
 
 
 ###Create Preposcessing
-ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[0:6],intermedateResult=int(args.intermedateresults))
+ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[0:5],intermedateResult=int(args.intermedateresults))
 #ds_tr_pp = prepos(timestr,trash,"Trainning",ds_tr)
 ###Creating Mask
 main_logger.debug("Preprocessing had finnish")
 
-mask = createMask(ds_ts_pp[2].shape[0],ds_ts_pp[2].shape[1], ds_ts_pp[2])
+ds_ts_mask = masks(timestr,trash,"Testing",ds_ts[0:5],intermedateResult=int(args.intermedateresults))
+main_logger.debug("Masking had finnish")
 
-cv2.namedWindow("Test", cv2.WINDOW_NORMAL)
-cv2.imshow("Test", mask)
-cv2.resizeWindow("Test", 1000, 1000)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 

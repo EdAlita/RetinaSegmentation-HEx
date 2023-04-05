@@ -28,7 +28,7 @@ def prepos(timestr,trash,dname,data,intermedateResult=0):
     
     ### green channel splitting and CLAHE
     pre_logger.debug("Begin of the Preproscessing of "+dname)
-    with tqdm(total=len(data)-1,desc="Preposcessing "+dname) as pbar:
+    with tqdm(total=len(data),desc="Preposcessing "+dname) as pbar:
         for i in range(0,len(data)):
             img = data[i]
             (B, G, R) = cv2.split(img)
@@ -44,7 +44,7 @@ def prepos(timestr,trash,dname,data,intermedateResult=0):
     
     #Denoising the Images
     pre_logger.debug("Begin of the Denoising of "+dname)
-    with tqdm(total=len(cli)-1,desc="Denoising of "+dname) as pbar:
+    with tqdm(total=len(cli),desc="Denoising of "+dname) as pbar:
         for i in range(0,len(cli)):
             img = cv2.fastNlMeansDenoisingColored(cli[i],None,10,10,7,21)
             img = abs(img - 255)
