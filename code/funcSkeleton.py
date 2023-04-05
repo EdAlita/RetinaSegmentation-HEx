@@ -6,6 +6,7 @@ import time
 import sys
 import os
 from extendable_logger import extendable_logger
+from extendable_logger import projloggger
 from matplotlib import pyplot as plt
 from time import sleep
 from tqdm import tqdm
@@ -17,17 +18,11 @@ import numpy as np
 #    - data    : The data that the function is going to work with
 #    - intermedateResult : Activated the priting of the results. (Only works with activation of logs at the same time)
 
-def function_name(timestr,trash,dname,data,intermedateResult=None):
+def function_name(timestr,trash,dname,data,intermedateResult=0):
     
     #log_fuction
-    if (trash!=0):
-        pre_logger = extendable_logger('function_name',"logs/"+timestr+"/"+dname+"function_name.log",level=trash)
-    else:
-        #Create a different tmp number just for deleting so number no matters just not repeting
-        pre_logger = extendable_logger('main',"tmp3",trash)
-        pre_logger.disabled = True
-        os.remove("tmp3")
-    pre_logger.debug("Begin of the function_name.py code")
+    
+    function_logger = projloggger('function_name',timestr,dname,trash,'tmp3')
     
     with tqdm(total=len(data)-1,desc="Part of the process"+dname) as pbar:
         for i in range(0,len(data)):
@@ -36,7 +31,7 @@ def function_name(timestr,trash,dname,data,intermedateResult=None):
     
  
     #Saving Intermedate Results on a PDF for the value save in intermedateResult
-    if(intermedateResult!=None):
+    if(intermedateResult!=0):
         
         plt.subplot(131),plt.imshow(cv2.cvtColor(data[intermedateResult], cv2.COLOR_BGR2RGB))
         plt.title("R1")
@@ -48,8 +43,8 @@ def function_name(timestr,trash,dname,data,intermedateResult=None):
         plt.savefig("logs/"+timestr+"/FunctionNameResults"+str(intermedateResult)+".pdf")
     
     #Whit this we know that the code run until the end    
-    pre_logger.debug("The code run was sucessful")
-    pre_logger.debug("exit code 0")
+    function_logger.debug("The code run was sucessful")
+    function_logger.debug("exit code 0")
     
     #return the data list of all images
     prepos_data = bus

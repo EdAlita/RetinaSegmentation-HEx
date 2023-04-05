@@ -5,31 +5,27 @@ import time
 import sys
 import os
 from extendable_logger import extendable_logger
+from extendable_logger import projloggger
 from matplotlib import pyplot as plt
 from time import sleep
 from tqdm import tqdm
 import numpy as np
 
-def veins(timestr,trash,dname,data,intermedateResult=None):
+def veins(timestr,trash,dname,data,intermedateResult=0):
     
     #log_fuction
-    if (trash!=0):
-        pre_logger = extendable_logger('veins',"logs/"+timestr+"/"+dname+"veins.log",level=trash)
-    else:
-        pre_logger = extendable_logger('main',"tmp3",trash)
-        pre_logger.disabled = True
-        os.remove("tmp3")
-    pre_logger.debug("Begin of the veins.py code")
+    veins_logger = projloggger('veins',timestr,dname,trash,'tmp3')
+    veins_logger.debug("Begin of the veins.py code")
     
     with tqdm(total=len(data)-1,desc="Veins Extraction "+dname) as pbar:
         for i in range(0,len(data)):
-
+            
             pbar.update(1)
     
 
     
     #printing intermedate results
-    if(intermedateResult!=None):
+    if(intermedateResult!=0):
         
         plt.subplot(131),plt.imshow(cv2.cvtColor(data[intermedateResult], cv2.COLOR_BGR2RGB))
         plt.title("Original Image")
@@ -40,8 +36,8 @@ def veins(timestr,trash,dname,data,intermedateResult=None):
         
         plt.savefig("logs/"+timestr+"/VeinsResults"+str(intermedateResult)+".pdf")
         
-    pre_logger.debug("The code run was sucessful")
-    pre_logger.debug("exit code 0")
+    veins_logger.debug("The code run was sucessful")
+    veins_logger.debug("exit code 0")
     
-    prepos_data = bus
-    return prepos_data 
+    veins_data = bus
+    return veins_data 

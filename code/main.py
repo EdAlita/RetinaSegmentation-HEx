@@ -4,10 +4,11 @@ import logging
 import time
 import sys
 import os
+from proj_functions import *
 from matplotlib import pyplot as plt
 from preposcessing import prepos
 from extendable_logger import extendable_logger
-from eye_fundus_mask import mask
+from extendable_logger import projloggger
 from time import sleep
 from tqdm import tqdm
 import numpy as np
@@ -16,7 +17,7 @@ import argparse
 ###Parsing 
 parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
 parser.add_argument("-l", "--level", default=0,help='level of the internal logger (default: 0 , will not create logs)For more help check wiki on loggers for the correct value.')
-parser.add_argument("-ir","--intermedateresults", default=None,help='Creates intermedate results of the number that you provide.Store them in Log folder. Provide a number')
+parser.add_argument("-ir","--intermedateresults", default=0,help='Creates intermedate results of the number that you provide.Store them in Log folder. Provide a number')
 args = parser.parse_args()
 
 #Allow Logging function
@@ -60,28 +61,10 @@ Path to training images
 .gitignore will not let this file upload to this file to our file structure
 
 """
-#Define of the local functions
-
-def RGB2Gray( img_list , type_img ):
-    #Converts a OpenCV array of images to Grayscale
-    with tqdm(total=len(img_list),desc="Grayscale of "+type_img) as pbar:
-        for i in range(0,len(img_list)):
-            img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
-            main_logger.info(type_img+" image "+str(i)+" converted to grayscale")
-            pbar.update(i)
-    return img_list
-
-def get_localDirectories ( name ):
-    #gets the data from the direction of the cfg file
-    with open(name, 'r') as file:
-        one = file.readline().rstrip()
-        two = file.readline().rstrip()
-        main_logger.debug("Program open the cfg file")   
-    return one,two
 
 #Open file to obtain local variables
 fname = 'main.cfg'
-test,training = get_localDirectories(fname)
+test,training = get_localDirectories(fname,main_logger)
 
 #Creating data sets of all the images.
 
@@ -113,6 +96,19 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 #ds_ts_gs = RGB2Gray( ds_ts,"Testing")
 #ds_tr_gs = RGB2Gray( ds_tr,"Training")
 
+# Now let's create a mask for this image
+def createMask(rows,cols,img):
+    # black image
+    mask = np.zeros((rows,cols,1),dtype=np.uint8)
+    # blit our contours onto it in white color
+    imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(imgray, 0, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cnt = contours[0]
+    mask = cv2.drawContours(mask, [cnt], 0, (0,255,0), 3)
+    return mask
+
+
 
 ###Create Preposcessing
 ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[0:6],intermedateResult=int(args.intermedateresults))
@@ -120,14 +116,15 @@ ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[0:6],intermedateResult=int(args.
 ###Creating Mask
 main_logger.debug("Preprocessing had finnish")
 
+mask = createMask(ds_ts_pp[2].shape[0],ds_ts_pp[2].shape[1], ds_ts_pp[2])
+
+cv2.namedWindow("Test", cv2.WINDOW_NORMAL)
+cv2.imshow("Test", mask)
+cv2.resizeWindow("Test", 1000, 1000)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 #main_logger.debug("Grayscale covertion finish without problems")
-
-
-#cv2.imshow('grayscale',ds_ts_gs[4])
-
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
 
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")
