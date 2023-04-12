@@ -1,17 +1,10 @@
-from glob import glob
 import cv2
-import logging
 import time
-import sys
 import os
 from proj_functions import *
-from matplotlib import pyplot as plt
 from preposcessing import prepos
 from masks import masks
 from extendable_logger import extendable_logger
-from extendable_logger import projloggger
-from time import sleep
-from tqdm import tqdm
 import numpy as np
 import argparse
 
@@ -52,6 +45,7 @@ logging.warning("Warning, the program may not function properly")
 logging.error("The program encountered an error")
 logging.critical("The program crashed")
 """
+
 """
 Before running create a file name 
 
