@@ -19,6 +19,9 @@ import argparse
 parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
 parser.add_argument("-l", "--level", default=0,help='level of the internal logger (default: 0 , will not create logs)For more help check wiki on loggers for the correct value.')
 parser.add_argument("-ir","--intermedateresults", default=0,help='Creates intermedate results of the number that you provide.Store them in Log folder. Provide a number')
+parser.add_argument("-ll","--lowerlimit", default="l",help='Gives the lower limit to cut the data. Default value is the entire array of Data')
+parser.add_argument("-lh","--highlimit", default="h",help='Gives the higher limit to cut the data. Default value is the entire array of Data')
+
 args = parser.parse_args()
 
 #Allow Logging function
@@ -81,6 +84,7 @@ ds_tr = []
 ds_ts = []
 
 for i in range(0,len(test_n)):
+
     img = cv2.imread(test+test_n[i],cv2.IMREAD_COLOR)
     ds_ts.append(img)
 
@@ -98,20 +102,14 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 
 # Now let's create a mask for this image
 
-
 ###Create Preposcessing
-ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[0:5],intermedateResult=int(args.intermedateresults))
+ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[args.lowerlimit:args.highlimit],intermedateResult=int(args.intermedateresults))
 #ds_tr_pp = prepos(timestr,trash,"Trainning",ds_tr)
 ###Creating Mask
 main_logger.debug("Preprocessing had finnish")
 
-ds_ts_mask = masks(timestr,trash,"Testing",ds_ts[0:5],intermedateResult=int(args.intermedateresults))
+ds_ts_mask = masks(timestr,trash,"Testing",ds_ts[args.lowerlimit:args.highlimit],intermedateResult=int(args.intermedateresults))
 main_logger.debug("Masking had finnish")
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-#main_logger.debug("Grayscale covertion finish without problems")
 
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")

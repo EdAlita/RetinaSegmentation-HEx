@@ -12,6 +12,19 @@ from tqdm import tqdm
 import numpy as np
 
 def prepos(timestr,trash,dname,data,intermedateResult=0):
+    """This a preprocessing function of the projects
+
+    Args:
+        timestr (str): Day and time to create the logs of the project
+        trash (int): Level of debuging for the logs
+        dname (str): Name of the data for the logs
+        data (img_array): Array of data to apply the preprocessing 
+        intermedateResult (int, optional): The number of intermedate result to save in pdf format of the results. Defaults to 0.
+
+    Returns:
+        img_array : prepos images with the alterations apply
+    """
+    
     img = np.zeros((2848, 4288, 3), dtype = "uint8")
     bus = []
     cli= []
