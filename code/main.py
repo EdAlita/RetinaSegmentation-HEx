@@ -12,10 +12,15 @@ import argparse
 parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
 parser.add_argument("-l", "--level", default=0,help='level of the internal logger (default: 0 , will not create logs)For more help check wiki on loggers for the correct value.')
 parser.add_argument("-ir","--intermedateresults", default=0,help='Creates intermedate results of the number that you provide.Store them in Log folder. Provide a number')
-parser.add_argument("-ll","--lowerlimit", default="l",help='Gives the lower limit to cut the data. Default value is the entire array of Data')
-parser.add_argument("-lh","--highlimit", default="h",help='Gives the higher limit to cut the data. Default value is the entire array of Data')
+parser.add_argument("-ll","--lowerlimit", default=100,help='Gives the lower limit to cut the data. Default value is the entire array of Data')
+parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limit to cut the data. Default value is the entire array of Data')
+
+
 
 args = parser.parse_args()
+
+
+
 
 #Allow Logging function
 trash = int(args.level)
@@ -72,6 +77,21 @@ training_n= os.listdir(training)
 test_n.sort()
 training_n.sort()
 
+ll_ts = int(args.lowerlimit)
+ll_tr = int(args.lowerlimit)
+
+hl_ts = int(args.highlimit)
+hl_tr = int(args.highlimit)
+
+if(args.lowerlimit==100):
+    ll_ts = 0
+    ll_tr = 0
+    
+if(args.highlimit==100):
+    hl_ts = len(test_n)
+    hl_tr = len(training_n)
+    
+
 img = np.zeros((2848, 4288, 3), dtype = "uint8")
 
 ds_tr = []
@@ -97,12 +117,12 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 # Now let's create a mask for this image
 
 ###Create Preposcessing
-ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[args.lowerlimit:args.highlimit],intermedateResult=int(args.intermedateresults))
+ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[ll_ts:hl_ts],intermedateResult=int(args.intermedateresults))
 #ds_tr_pp = prepos(timestr,trash,"Trainning",ds_tr)
 ###Creating Mask
 main_logger.debug("Preprocessing had finnish")
 
-ds_ts_mask = masks(timestr,trash,"Testing",ds_ts[args.lowerlimit:args.highlimit],intermedateResult=int(args.intermedateresults))
+ds_ts_mask = masks(timestr,trash,"Testing",ds_ts[ll_ts:hl_ts],intermedateResult=int(args.intermedateresults))
 main_logger.debug("Masking had finnish")
 
 main_logger.debug("The code run was sucessful")
