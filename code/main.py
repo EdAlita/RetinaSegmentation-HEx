@@ -90,12 +90,14 @@ if(args.lowerlimit==100):
 if(args.highlimit==100):
     hl_ts = len(test_n)
     hl_tr = len(training_n)
-    
 
 img = np.zeros((2848, 4288, 3), dtype = "uint8")
 
 ds_tr = []
 ds_ts = []
+
+gc = []
+gd = []
 
 for i in range(0,len(test_n)):
 
@@ -117,13 +119,66 @@ main_logger.debug("The list length of the training is "+str(len(ds_tr)))
 # Now let's create a mask for this image
 
 ###Create Preposcessing
-ds_ts_pp = prepos(timestr,trash,"Testing",ds_ts[ll_ts:hl_ts],intermedateResult=int(args.intermedateresults))
+ds_ts_pp,gc,gd = prepos(timestr,trash,"Testing",ds_ts[ll_ts:hl_ts],intermedateResult=int(args.intermedateresults))
 #ds_tr_pp = prepos(timestr,trash,"Trainning",ds_tr)
 ###Creating Mask
 main_logger.debug("Preprocessing had finnish")
 
+
+
 ds_ts_mask = masks(timestr,trash,"Testing",ds_ts[ll_ts:hl_ts],intermedateResult=int(args.intermedateresults))
-main_logger.debug("Masking had finnish")
+#main_logger.debug("Masking had finnish")
+
+cv2.imwrite('green_clahe.jpg',gc[0])
+cv2.imwrite('greenoising_den.jpg',gd[0])
+
+#Check this function
+def vein_extraction(img,mask):
+    image = np.zeros((2848, 4288), dtype = "uint8")
+    marker = np.zeros((2848, 4288), dtype = "uint8")
+    blur = np.zeros((2848, 4288), dtype = "uint8")
+    veins= np.zeros((2848, 4288), dtype = "uint8")
+    
+    inv_img = 255 - img
+    Inhance = adjust_gamma(inv_img, gamma=1.0)
+    smooth = cv2.GaussianBlur(Inhance, (7, 7), 0)   
+    #masked = cv2.bitwise_and(img,mask)
+    clahe = cv2.createCLAHE(clipLimit=0.20, tileGridSize=(1,1))
+    img_clahe = clahe.apply(smooth)
+    stuctElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
+    marker = cv2.morphologyEx(smooth, cv2.MORPH_OPEN, stuctElement)
+    final = cv2.subtract(marker,img_clahe)
+    
+    ret,thresh = cv2.threshold(final,0,256,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+    ret2,thresh2 = cv2.threshold(thresh,ret,ret,cv2.THRESH_BINARY)
+    masked = cv2.bitwise_and(thresh2,thresh2, mask=mask)
+    out = cv2.medianBlur(masked,7)
+    kernel= np.ones((5,5), np.uint8)
+    out = cv2.dilate(out,kernel)
+    
+
+    contours, hierarchy = cv2.findContours(out, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    """
+    for i, cnt in enumerate(contours):
+        if hierarchy[0][i][0] != -1:
+            peri = cv2.arcLength(cnt,True)
+            approx = cv2.approxPolyDP(cnt, 0.02*peri,True)
+            if not len(approx) == 4:
+                veins = cv2.drawContours(veins,[cnt],0,(255,255,255),-1)
+    """
+    veins = cv2.drawContours(veins,contours,-1,(255,255,255),-1)
+    #veins = 255 - veins
+    kernel= np.ones((5,5), np.uint8)
+    out = cv2.dilate(veins,kernel)
+    smooth = cv2.erode(out,kernel)
+    #result = cv2.subtract(img,smooth)
+    result = cv2.bitwise_and(smooth,img)
+    return result
+
+blur = cv2.GaussianBlur(gd[0], (7, 7), 0)
+veins = vein_extraction(blur,ds_ts_mask[0])
+cv2.imwrite('vein_extraction.jpg',veins)
 
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")
