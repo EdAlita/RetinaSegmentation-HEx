@@ -1,13 +1,7 @@
 from glob import glob
 import cv2
-import logging
-import time
-import sys
-import os
-from extendable_logger import extendable_logger
 from extendable_logger import projloggger
 from matplotlib import pyplot as plt
-from time import sleep
 from tqdm import tqdm
 import numpy as np
 
