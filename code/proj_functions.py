@@ -1,5 +1,8 @@
 import numpy as np
 import cv2
+from tqdm import tqdm
+import os
+
 def RGB2Gray( img_list , type_img, logger):
     """gets the RGB image and coverted into Gray Scale
 
@@ -36,33 +39,25 @@ def get_localDirectories ( name , logger ):
         logger.debug("Program open the cfg file")   
     return one,two
 
-def adjust_gamma(image, gamma=1.0):
-    table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
-    return cv2.LUT(image, table)
+def save_images(data,names,dataname,directory,logger,process):
+    """Function to save all the images in a folder
 
-def OTSU(img_gray):
-    max_g = 0
-    suitable_th = 0
-    th_begin = 0
-    th_end = 256
-    for threshold in range(th_begin, th_end):
-        bin_img = img_gray > threshold
-        bin_img_inv = img_gray <= threshold
-        fore_pix = np.sum(bin_img)
-        back_pix = np.sum(bin_img_inv)
-        if 0 == fore_pix:
-            break
-        if 0 == back_pix:
-            continue
- 
-        w0 = float(fore_pix) / img_gray.size
-        u0 = float(np.sum(img_gray * bin_img)) / fore_pix
-        w1 = float(back_pix) / img_gray.size
-        u1 = float(np.sum(img_gray * bin_img_inv)) / back_pix
-        # intra-class variance
-        g = w0 * w1 * (u0 - u1) * (u0 - u1)
-        if g > max_g:
-            max_g = g
-            suitable_th = threshold
- 
-    return suitable_th
+    Args:
+        data (List): List of images to save
+        dataname (str): Name of the folder to save the images
+        names (List): List of the names to saves images
+        directory (str): Directory to save the files
+        logger (logger): Logger to create a history of this fucntion
+
+    Returns:
+        None: no return
+    """
+    with tqdm(total=len(data),desc="Saving Images "+dataname+" of "+process) as pbar:
+        for i in range(0,len(data)):
+
+            cv2.imwrite(os.path.join(directory,names[i]),data[i])
+            logger.info(names[i]+" image "+str(i)+" saving images of Prepos "+dataname)
+            
+            pbar.update(i)  
+                         
+    return None
