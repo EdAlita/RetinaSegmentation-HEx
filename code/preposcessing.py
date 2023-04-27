@@ -58,7 +58,7 @@ def prepos(timestr,trash,dname,data,intermedateResult=0):
             img = cv2.fastNlMeansDenoisingColored(cli[i],None,3,3,21,7)
             img = abs(img - 255)
             (B, G, R) = cv2.split(img)
-            green_ch_d.append(G )
+            green_ch_d.append(G)
             bus.append(img)
             pre_logger.info(dname+" image "+str(i)+" Denoising")
             pbar.update(1)
