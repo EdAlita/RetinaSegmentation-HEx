@@ -1,63 +1,61 @@
-import numpy as np
 import cv2
 from tqdm import tqdm
 import os
 
-def RGB2Gray( img_list , type_img, logger):
-    """gets the RGB image and coverted into Gray Scale
-
-    Args:
-        img_list (img): Image array to convert
-        type_img (str): Name of the data to convert 
-        logger (logger): logger to create the logs of the function
-
-    Returns:
-        img_array: Gray array of the image provide
-    """
-    #Converts a OpenCV array of images to Grayscale
-    with tqdm(total=len(img_list),desc="Grayscale of "+type_img) as pbar:
-        for i in range(0,len(img_list)):
-            img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
-            logger.info(type_img+" image "+str(i)+" converted to grayscale")
-            pbar.update(i)
-    return img_list
-
-def get_localDirectories ( name , logger ):
+def get_localDirectories ( cfgFile , logger ):
     """Function to obtain the local Directories of the given files
-
+    
     Args:
-        name (str): name of the file
+        cfgFile (str): name of the file to open
         logger (logger): logger to create a history of this function
 
     Returns:
         str: the two directions of the local files to use
     """
-    #gets the data from the direction of the cfg file
-    with open(name, 'r') as file:
-        one = file.readline().rstrip()
-        two = file.readline().rstrip()
+    with open(cfgFile, 'r') as file:
+        testFolderLocation = file.readline().rstrip()
+        trainingFolderLocation = file.readline().rstrip()
         logger.debug("Program open the cfg file")   
-    return one,two
+    return testFolderLocation,trainingFolderLocation
 
-def save_images(data,names,dataname,directory,logger,process):
+def save_images(imageList,nameList,folderName,directory,logger,process,numberofImages):
     """Function to save all the images in a folder
 
     Args:
-        data (List): List of images to save
-        dataname (str): Name of the folder to save the images
-        names (List): List of the names to saves images
+        imageList (List): List of images to save
+        nameList (List): List of the names
+        foldername (str): Name of the folder to save the images
         directory (str): Directory to save the files
         logger (logger): Logger to create a history of this fucntion
+        process (str): Name of the process to save
+        numberofImages (int): length of the list of images
 
     Returns:
         None: no return
     """
-    with tqdm(total=len(data),desc="Saving Images "+dataname+" of "+process) as pbar:
-        for i in range(0,len(data)):
-
-            cv2.imwrite(os.path.join(directory,names[i]),data[i])
-            logger.info(names[i]+" image "+str(i)+" saving images of Prepos "+dataname)
-            
-            pbar.update(i)  
+    with tqdm(total=numberofImages,desc="Saving Images "+folderName+" of "+process) as statusbar:
+        for i in range(0,numberofImages):
+            cv2.imwrite(os.path.join(directory,nameList[i]),imageList[i])
+            logger.info(nameList[i]+" image "+str(i)+" saving images of Prepos "+folderName)
+            statusbar.update(1)  
                          
     return None
+
+def settingLimits(argumentsLimit,firstdefaultvalue,seconddefaultvalue):
+    """Set the limits from a default value or a setvalue
+
+    Args:
+        argumentsLimit (argument.limit): limit value of the argument given
+        firstdefaultvalue (int): value to set
+        seconddefaultvalue (int): value to set
+
+    Returns:
+        int: limits value
+    """
+    if(argumentsLimit==100):
+        firstlimit=firstdefaultvalue
+        secondlimit=seconddefaultvalue
+    else:
+        firstlimit=int(argumentsLimit)
+        secondlimit=int(argumentsLimit)
+    return firstlimit, secondlimit
