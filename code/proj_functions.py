@@ -18,7 +18,7 @@ def get_localDirectories ( cfgFile , logger ):
         logger.debug("Program open the cfg file")   
     return testFolderLocation,trainingFolderLocation
 
-def save_images(imageList,nameList,folderName,directory,logger,process,numberofImages):
+def save_images(imageList,nameList,folderName,directory,logger,process):
     """Function to save all the images in a folder
 
     Args:
@@ -33,6 +33,7 @@ def save_images(imageList,nameList,folderName,directory,logger,process,numberofI
     Returns:
         None: no return
     """
+    numberofImages = len(imageList)
     with tqdm(total=numberofImages,desc="Saving Images "+folderName+" of "+process) as statusbar:
         for i in range(0,numberofImages):
             cv2.imwrite(os.path.join(directory,nameList[i]),imageList[i])
