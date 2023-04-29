@@ -2,7 +2,7 @@ import cv2
 from tqdm import tqdm
 import os
 
-def get_localDirectories ( cfgFile , logger ):
+def get_localDirectories ( cfgFile , logger):
     """Function to obtain the local Directories of the given files
     
     Args:
@@ -12,10 +12,16 @@ def get_localDirectories ( cfgFile , logger ):
     Returns:
         str: the two directions of the local files to use
     """
-    with open(cfgFile, 'r') as file:
-        testFolderLocation = file.readline().rstrip()
-        trainingFolderLocation = file.readline().rstrip()
-        logger.debug("Program open the cfg file")   
+    cfgfile = os.path.join(os.getcwd(),'main.cfg')
+    if not (os.path.exists(cfgfile)):
+            testFolderLocation = os.path.join('..','data','images','test/')
+            trainingFolderLocation = os.path.join('..','data','images','training/')
+    else:    
+        with open(cfgFile, 'r') as file:
+            testFolderLocation = file.readline().rstrip()
+            trainingFolderLocation = file.readline().rstrip()
+            logger.debug("Program open the cfg file") 
+              
     return testFolderLocation,trainingFolderLocation
 
 def save_images(imageList,nameList,folderName,directory,logger,process):
@@ -33,6 +39,7 @@ def save_images(imageList,nameList,folderName,directory,logger,process):
     Returns:
         None: no return
     """
+    
     numberofImages = len(imageList)
     with tqdm(total=numberofImages,desc="Saving Images "+folderName+" of "+process) as statusbar:
         for i in range(0,numberofImages):
@@ -60,3 +67,22 @@ def settingLimits(argumentsLimit,firstdefaultvalue,seconddefaultvalue):
         firstlimit=int(argumentsLimit)
         secondlimit=int(argumentsLimit)
     return firstlimit, secondlimit
+
+def TestTrainnig(above_path):
+    folders = ['Tests','Trainning']
+    for element in folders:
+        path = os.path.join(above_path,element)
+        if not os.path.exists(path):
+            os.mkdir(path)            
+def SubFolders(above_path):
+    folders = ['HardExodus','Masks','OpticalDisk','Prepos']
+    for element in folders:
+        path = os.path.join(above_path,element)
+        if not os.path.exists(path):
+            os.mkdir(path)
+        TestTrainnig(path)    
+def file_structure(currentpath):
+    Result = os.path.join(currentpath,'Results')
+    if not (os.path.exists(Result)):
+        os.mkdir(Result)
+    SubFolders(Result)    

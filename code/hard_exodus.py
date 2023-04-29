@@ -26,7 +26,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     hardexodus_logger.debug("Begin of the hard_exodus.py code")
     
     kernel = np.ones((8,8),np.uint8)
-    strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(8,8))
+    strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
     def hardExodus(img):
         dilateImage = cv2.dilate(img,strutElement)
         retValue, treshImage = cv2.threshold(dilateImage,200,255, cv2.THRESH_BINARY)

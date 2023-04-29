@@ -30,6 +30,7 @@ parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limi
 arguments = parser.parse_args()
 #gettingCurrentpath
 currentpath = os.getcwd()
+file_structure(currentpath)
 
 #Allow Logging function
 loglevel = int(arguments.level)
