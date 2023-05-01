@@ -162,5 +162,3 @@ cython_debug/
 *.cfg
 *.log
 .idea/
-Results/
-logs/
