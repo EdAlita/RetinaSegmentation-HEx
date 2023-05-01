@@ -1,7 +1,8 @@
 ## Table of contents
-* [General info](#general-info)
-* [Technologies](#technologies)
-* [Authors](#authors)
+- [Table of contents](#table-of-contents)
+- [General Info](#general-info)
+- [Technologies](#technologies)
+- [Authors](#authors)
 
 
 ## General Info
@@ -26,7 +27,7 @@ Colabolators in the project:
 * [Edwing Ulin](https://github.com/EdAlita)
 * [Jaqueline Leal](https://github.com/JLealc)
 * [Carmen](https://github.com/CarmenColinTen)
-* [Taibur]()
+* [Taiabur](https://github.com/taiaburbd)
 
 
 
