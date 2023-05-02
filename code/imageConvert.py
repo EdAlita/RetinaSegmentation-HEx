@@ -16,6 +16,7 @@ class imagecvt:
         for i in range(0,len(img_list)-1):
             img_list[i] = cv2.cvtColor(img_list[i], cv2.COLOR_BGR2GRAY)
             # logging.info(type_img+" image "+str(i)+" converted to grayscale")
+            cv2.imwrite(img_list[i],img_list[i])
             self.logg.add_info(type_img+" image "+str(i)+" converted to grayscale")
         return img_list
 
