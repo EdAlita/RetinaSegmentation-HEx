@@ -17,12 +17,13 @@ def opticaldisk(timestamp,loglevel,dataname,data):
         img_array: Result of the optical extraction image function
     """
     img = np.zeros((2848, 4288, 3), dtype = "uint8")
+    ye = np.zeros((2848,4288,1), dtype="uint8")
     result = []
     
     data_length = len(data)
     
     #log_fuction
-    masks_logger = projloggger('masks',timestamp,dataname,loglevel,'tmp4')
+    masks_logger = projloggger('opticaldisk',timestamp,dataname,loglevel,'tmp4')
     masks_logger.debug("Begin of the masks.py code")
     
     def extractDisk(img):
@@ -35,10 +36,16 @@ def opticaldisk(timestamp,loglevel,dataname,data):
             img: mask of the image
         """
         (B, G, R) = cv2.split(img)
-        imageBlur = cv2.GaussianBlur(R,(25,25),0)
-        (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(imageBlur)
-        img = cv2.merge([B, G, R])
-        cv2.circle(img,maxLoc, 300, (0,0,0), -1)        
+        for i in range(1,2848):
+            for j in range(1,4288):
+                ye[i,j] = 0.73925 * R[i,j] + 0.14675 * G[i,j]+ 0.114 * B[i,j]
+                
+            
+        #imageBlur = cv2.GaussianBlur(1-B,(25,25),0)
+        (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(ye)
+        img = cv2.merge([B,G,R])
+        cv2.circle(img,maxLoc, 300, (0,0,0), -1)
+        #cv2.selectROI()        
         return img
     
     with tqdm(total=data_length,desc="Optical Disk Extraction "+dataname) as pbar:

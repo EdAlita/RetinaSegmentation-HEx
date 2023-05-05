@@ -71,11 +71,24 @@ for i in range(0,trainingList_length):
 main_logger.debug("The list length of the test is "+str(len(test_dataset)))
 main_logger.debug("The list length of the training is "+str(len(training_dataset)))
 
+###Creating Masks
+main_logger.debug("Masking had beging")
+test_masks = masks(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
+training_masks = masks(timestamp,loglevel,"Trainning",training_dataset[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
+main_logger.debug("Masking had finnish")
+
+directory_last = os.path.join(currentpath,'Results','Masks','Tests')
+save_images(test_masks[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Masks")
+directory_last = os.path.join(currentpath,'Results','Masks','Training')
+save_images(training_masks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Masks")
+
+
 ###Deleting the Optical Disk
+
 main_logger.debug("Optical Disk Removal had begging")
 
-test_removeOpticalDisk = opticaldisk(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit])
-training_removeOpticalDisk  = opticaldisk(timestamp,loglevel,"Training",training_dataset[trainingList_lowerlimit:trainingList_highlimit])
+test_removeOpticalDisk = opticaldisk(timestamp,loglevel,"Testing",test_masks[testList_lowerlimit:testList_highlimit])
+training_removeOpticalDisk  = opticaldisk(timestamp,loglevel,"Training",training_masks[trainingList_lowerlimit:trainingList_highlimit])
 
 directory_last = os.path.join(currentpath,'Results','OpticalDisk','Tests')
 save_images(test_removeOpticalDisk[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"OpticalDisk")
@@ -100,18 +113,9 @@ save_images(training_denoising[trainingList_lowerlimit:trainingList_highlimit],t
 
 main_logger.debug("Preprocessing had finnish")
 
-###Creating Masks
-main_logger.debug("Masking had beging")
-test_masks = masks(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
-training_masks = masks(timestamp,loglevel,"Trainning",training_dataset[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
-main_logger.debug("Masking had finnish")
-
-directory_last = os.path.join(currentpath,'Results','Masks','Tests')
-save_images(test_masks[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Masks")
-directory_last = os.path.join(currentpath,'Results','Masks','Training')
-save_images(training_masks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Masks")
 
 ###Hard Exodus
+
 main_logger.debug("Hard Exodus had beging")
 
 test_hardExodus = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit])
@@ -125,8 +129,7 @@ save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],
 
 
 main_logger.debug("Hard Exodus had ending")
-
-            
+        
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")
 

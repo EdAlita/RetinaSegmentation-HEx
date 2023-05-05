@@ -41,7 +41,7 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
         for i in range(0,data_length):
             imageholder = data[i]
             (B, G, R) = cv2.split(imageholder)
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+            clahe = cv2.createCLAHE(clipLimit=0.8, tileGridSize=(8,8))
             B = clahe.apply(B)
             G = clahe.apply(G)
             R = clahe.apply(R)
@@ -57,7 +57,6 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     with tqdm(total=data_length,desc="Denoising of "+dataname) as statusbar:
         for i in range(0,data_length):
             imageholder = cv2.fastNlMeansDenoisingColored(clahe_image[i],None,3,3,21,7)
-            imageholder= abs(imageholder - 255)
             (B, G, R) = cv2.split(imageholder)
             denoising_result.append(G)
             denoising_image.append(imageholder)

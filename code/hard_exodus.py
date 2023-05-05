@@ -3,6 +3,7 @@ from extendable_logger import projloggger
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 import numpy as np
+from proj_functions import transformRGB2YIQ,transformYIQ2RGB
 
 def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     """Segmentatio of the Hard Exodus in Fundus eye images
@@ -16,7 +17,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     Returns:
         img_array: Result of the segementation process
     """
-    img = np.zeros((2848, 4288, 3), dtype = "uint8")
+
     result = []
     
     data_length = len(data)
@@ -25,13 +26,52 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     hardexodus_logger = projloggger('hardexodus',timestamp,dataname,loglevel,'tmp25')
     hardexodus_logger.debug("Begin of the hard_exodus.py code")
     
-    kernel = np.ones((8,8),np.uint8)
-    strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
+    kernel = np.ones((5,5),np.uint8)
+    strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6))
+    strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(25,25))
+    
     def hardExodus(img):
-        dilateImage = cv2.dilate(img,strutElement)
-        retValue, treshImage = cv2.threshold(dilateImage,200,255, cv2.THRESH_BINARY)
-        medianblur = cv2.erode(treshImage,kernel)
-        return medianblur
+        
+        dilateImage = cv2.morphologyEx(img,cv2.MORPH_CLOSE,strutElement)
+        result = cv2.morphologyEx(img,cv2.MORPH_CLOSE,strutElement2)
+        
+        retValue, treshImage = cv2.threshold(img,125,255, cv2.THRESH_BINARY)
+        I3 = cv2.bitwise_and(dilateImage,treshImage)
+        I4 = cv2.bitwise_and(result,treshImage)
+        
+        I5 = cv2.bitwise_xor(dilateImage,result)
+        I6 = cv2.bitwise_and(dilateImage,result)
+        
+        
+        
+        Iresult = cv2.add(I3,I4)
+
+        
+        
+        
+        """
+        Z = img.reshape((-1,3))
+        
+        Z = np.float32(Z)
+        
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,10, 1.0)
+        K = 8
+        ret, label, center = cv2.kmeans(Z,K,None,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
+        
+        center = np.uint8(center)
+        res = center[label.flatten()]
+        res2 = res.reshape((img.shape))
+        """
+
+        
+        #retValue, treshImage = cv2.threshold(gray,150,193, cv2.THRESH_BINARY)
+        #result = cv2.morphologyEx(treshImage,cv2.MORPH_OPEN,strutElement2)
+        
+        #result = cv2.bitwise_or(dilateImage,result)
+        #result = cv2.dilate(result,kernel)
+
+        #medianblur = cv2.erode(treshImage,kernel)
+        return Iresult
     
     
     with tqdm(total=data_length,desc="Hard Exodus Extraction "+dataname) as pbar:
