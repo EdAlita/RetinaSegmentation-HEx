@@ -5,9 +5,8 @@ import time
 import sys
 import os
 import logging
-from logGenerator import log
-from imageConvert import imagecvt
 import enlighten
+import numpy as np
 
 testpath='data/images/test/'
 trainingpath='data/images/training/'
@@ -39,6 +38,25 @@ class main:
 
             cv2.imwrite("result/contours/IDRiD_"+ str(imsl) +".jpg",gray)
 
+            # # reshape the image into a 2D array
+            # img_reshaped = img.reshape(-1, 3).astype(np.float32)
+
+            # # perform k-means clustering
+            # k = 5
+            # criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+            # flags = cv2.KMEANS_PP_CENTERS
+            # _, labels, centers = cv2.kmeans(img_reshaped, k, None, criteria, 5, flags)
+
+            # # assign colors to pixels based on cluster centers
+            # for i in range(img_reshaped.shape[0]):
+            #     img_reshaped[i] = centers[labels[i]]
+
+            # # convert the image back to its original shape and display it
+            # img_reshaped = img_reshaped.reshape(img.shape)
+            # img_reshaped = np.uint8(img_reshaped)
+
+            # cv2.imwrite("result/kmens/IDRiD_"+ str(imsl) +".jpg",img_reshaped)
+
             logger.info("Processing step %s" % imsl)
             pbar.update()
 
@@ -46,3 +64,9 @@ class main:
 m1=main()
 
 m1.rgb2gray()
+
+# (1) image preprocessing 
+# (2) candidate extraction 
+# (3) feature extraction 
+# (4) classification 
+# (5) post processing.
