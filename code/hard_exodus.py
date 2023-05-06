@@ -30,6 +30,23 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6))
     strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(25,25))
     
+    def jacksExodus(img):
+        _, thresh = cv2.threshold(img, 160, 255, cv2.THRESH_BINARY)
+        kernel = np.ones((3, 3), np.uint8)
+        opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel, iterations=2)
+        dist_transform = cv2.distanceTransform(closing, cv2.DIST_L2, 3)
+        _, sure_fg = cv2.threshold(dist_transform, 0.05*dist_transform.max(), 255, cv2.THRESH_BINARY)
+        sure_fg = np.uint8(sure_fg)
+        unknown = cv2.subtract(opening, sure_fg)
+        _, markers = cv2.connectedComponents(sure_fg)
+        markers = markers+1
+        markers[unknown == 255] = 0
+        markers = cv2.watershed(img, markers)
+        img[markers == -1] = [255, 0, 0]
+        return img
+    
+    
     def hardExodus(img):
         
         dilateImage = cv2.morphologyEx(img,cv2.MORPH_CLOSE,strutElement)
@@ -38,39 +55,8 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
         retValue, treshImage = cv2.threshold(img,125,255, cv2.THRESH_BINARY)
         I3 = cv2.bitwise_and(dilateImage,treshImage)
         I4 = cv2.bitwise_and(result,treshImage)
-        
-        I5 = cv2.bitwise_xor(dilateImage,result)
-        I6 = cv2.bitwise_and(dilateImage,result)
-        
-        
-        
+
         Iresult = cv2.add(I3,I4)
-
-        
-        
-        
-        """
-        Z = img.reshape((-1,3))
-        
-        Z = np.float32(Z)
-        
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,10, 1.0)
-        K = 8
-        ret, label, center = cv2.kmeans(Z,K,None,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
-        
-        center = np.uint8(center)
-        res = center[label.flatten()]
-        res2 = res.reshape((img.shape))
-        """
-
-        
-        #retValue, treshImage = cv2.threshold(gray,150,193, cv2.THRESH_BINARY)
-        #result = cv2.morphologyEx(treshImage,cv2.MORPH_OPEN,strutElement2)
-        
-        #result = cv2.bitwise_or(dilateImage,result)
-        #result = cv2.dilate(result,kernel)
-
-        #medianblur = cv2.erode(treshImage,kernel)
         return Iresult
     
     
