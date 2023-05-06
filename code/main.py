@@ -118,7 +118,7 @@ main_logger.debug("Preprocessing had finnish")
 main_logger.debug("Hard Exodus had beging")
 
 test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
-training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_prepos[testList_lowerlimit:testList_highlimit])
+training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_prepos[trainingList_lowerlimit:trainingList_highlimit])
 
 directory_last = os.path.join(currentpath,'Results','HardExodus','Tests')
 save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodus")

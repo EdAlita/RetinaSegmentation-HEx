@@ -20,7 +20,7 @@ def opticaldisk(timestamp,loglevel,dataname,data):
     ye = np.zeros((2848,4288,1), dtype="uint8")
     result = []
     test_correction_number = [11,24]
-    test_correct_centers = [(2586,1143),(654,2136)]
+    test_correct_centers = [(2586,1143),(639,1138)]
     train_correction_number = [6,9,12,20,24,48]
     train_correct_centers = [(2397,1221),(399,696),(2136,1059),(624,1065),(800,1000),(2256,1248)]
 
