@@ -117,14 +117,20 @@ main_logger.debug("Preprocessing had finnish")
 
 main_logger.debug("Hard Exodus had beging")
 
-test_hardExodus = hardExodusSegmentation(timestamp,loglevel,"Test",test_prepos[testList_lowerlimit:testList_highlimit])
-training_hardExodus = hardExodusSegmentation(timestamp,loglevel,"Training",training_prepos[trainingList_lowerlimit:trainingList_highlimit])
+test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
+training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
 
 directory_last = os.path.join(currentpath,'Results','HardExodus','Tests')
 save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodus")
 
 directory_last = os.path.join(currentpath,'Results','HardExodus','Training')
-save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"traininging",directory_last,main_logger,"HardExodus")
+save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodus")
+
+directory_last = os.path.join(currentpath,'Results','HardExodusJacks','Tests')
+save_images(test_hardExodusJacks[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodusJacks")
+
+directory_last = os.path.join(currentpath,'Results','HardExodusJacks','Training')
+save_images(training_hardExodusJacks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodusJacks")
 
 
 main_logger.debug("Hard Exodus had ending")

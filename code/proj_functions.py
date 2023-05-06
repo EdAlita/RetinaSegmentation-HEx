@@ -76,7 +76,7 @@ def TestTrainnig(above_path):
         if not os.path.exists(path):
             os.mkdir(path)            
 def SubFolders(above_path):
-    folders = ['HardExodus','Masks','OpticalDisk','Prepos']
+    folders = ['HardExodus','HardExodusJacks','OpticalDisk','Prepos']
     for element in folders:
         path = os.path.join(above_path,element)
         if not os.path.exists(path):

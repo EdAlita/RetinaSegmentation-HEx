@@ -35,18 +35,25 @@ def opticaldisk(timestamp,loglevel,dataname,data):
         Returns:
             img: mask of the image
         """
-        (B, G, R) = cv2.split(img)
-        for i in range(1,2848):
-            for j in range(1,4288):
+
+        
+        img_resized = cv2.resize(img,None,fx=0.75,fy=0.75)
+        
+        (B, G, R) = cv2.split(img_resized)
+        
+        for i in range(1,img_resized.shape[0]):
+            for j in range(1,img_resized.shape[1]):
+                
                 ye[i,j] = 0.73925 * R[i,j] + 0.14675 * G[i,j]+ 0.114 * B[i,j]
                 
             
         #imageBlur = cv2.GaussianBlur(1-B,(25,25),0)
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(ye)
-        img = cv2.merge([B,G,R])
-        cv2.circle(img,maxLoc, 300, (0,0,0), -1)
+        img_resized = cv2.merge([B,G,R])
+        cv2.circle(img_resized,maxLoc,300, (0,0,0), -1)
+        
         #cv2.selectROI()        
-        return img
+        return img_resized
     
     with tqdm(total=data_length,desc="Optical Disk Extraction "+dataname) as pbar:
         for i in range(0,data_length):

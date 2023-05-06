@@ -5,7 +5,7 @@ from tqdm import tqdm
 import numpy as np
 from proj_functions import transformRGB2YIQ,transformYIQ2RGB
 
-def hardExodusSegmentation(timestamp,loglevel,dataname,data):
+def hardExodusSegmentation(timestamp,loglevel,dataname,data,originaldata):
     """Segmentatio of the Hard Exodus in Fundus eye images
 
     Args:
@@ -19,6 +19,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     """
 
     result = []
+    result2 = []
     
     data_length = len(data)
     
@@ -30,7 +31,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6))
     strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(25,25))
     
-    def jacksExodus(img):
+    def jacksExodus(img,img_original):
         _, thresh = cv2.threshold(img, 160, 255, cv2.THRESH_BINARY)
         kernel = np.ones((3, 3), np.uint8)
         opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
@@ -42,9 +43,9 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
         _, markers = cv2.connectedComponents(sure_fg)
         markers = markers+1
         markers[unknown == 255] = 0
-        markers = cv2.watershed(img, markers)
-        img[markers == -1] = [255, 0, 0]
-        return img
+        markers = cv2.watershed(img_original, markers)
+        img_original[markers == -1] = [255, 0, 0]
+        return img_original
     
     
     def hardExodus(img):
@@ -63,6 +64,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     with tqdm(total=data_length,desc="Hard Exodus Extraction "+dataname) as pbar:
         for i in range(0,data_length):
             result.append(hardExodus(data[i]))
+            result2.append(jacksExodus(data[i],originaldata[i]))
             hardexodus_logger.info("Hard Exodus of "+str(i)+" of"+str(dataname))
             pbar.update(1)
     
@@ -71,4 +73,4 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     hardexodus_logger.debug("exit code 0")
     
     masks_data = result
-    return masks_data 
+    return result, result2 
