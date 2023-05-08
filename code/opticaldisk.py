@@ -46,7 +46,7 @@ def opticaldisk(timestamp,loglevel,dataname,data):
         Returns:
             img: mask of the image
         """
-        img_resized = cv2.resize(img,None,fx=0.75,fy=0.75)
+        img_resized = cv2.resize(img,None,fx=0.60,fy=0.60)
         
         (B, G, R) = cv2.split(img_resized)
         
