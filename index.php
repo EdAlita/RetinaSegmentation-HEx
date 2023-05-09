@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>RetinaSegmentation-HEx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+
+<body>
+
+    <div class="w3-container w3-green">
+        <h1>RetinaSegmentation-HEx</h1>
+        <p>This project focus on the Image analysis of retinal color fundus images. The main focus of the segmentation will be to detected lesion on the early detection of diabetic retinoplasthy, being the point of focus the Hard Exudus. !
+
+        </p>
+    </div>
+
+    <div class="w3-row-padding">
+        <div class="w3-third">
+            <h2>Original Images</h2>
+            <p><a href="images.php?link=RetinaSegmentation-HEx/data/images/test/" target="_blank">Test Image Link</a></p>
+            <p><a href="images.php?link=RetinaSegmentation-HEx/data/images/training/" target="_blank">Training Image Link</a></p>
+        </div>
+
+        <div class="w3-third">
+            <h2>Process Images</h2>
+            <p><strong>PreProcessing</strong></p>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/Prepos/Tests/" target="_blank">Test</a>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/Prepos/Trainning/" target="_blank">Training</a>
+            <p><strong>Masks</strong></p>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/Masks/Tests/" target="_blank">Test</a>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/Masks/Trainning/" target="_blank">Training</a>
+            <p><strong>Optical Disk</strong></p>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/OpticalDisk/Tests/" target="_blank">Test</a>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/OpticalDisk/Trainning/" target="_blank">Training</a>
+            <p><strong>Hard Exudate</strong></p>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/HardExodus/Tests/" target="_blank">Test</a>
+            <a href="images.php?link=RetinaSegmentation-HEx/Results/HardExodus/Trainning/" target="_blank">Training</a>
+        </div>
+
+        <div class="w3-third">
+            <h2>Github</h2>
+            <p>
+                <a href="https://github.com/EdAlita/RetinaSegmentation-HEx" target="_blank">Link</a></p>
+        </div>
+    </div>
+
+</body>
+
+</html>
