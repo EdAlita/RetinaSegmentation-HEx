@@ -44,9 +44,12 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
             B = clahe.apply(B)
             G = clahe.apply(G)
             R = clahe.apply(R)
-            clahe_result.append(G)
-            image_merge = cv2.merge([B, G, R ])
+
+            image_merge = cv2.merge([G, G, G])
+            image_merge = cv2.cvtColor(image_merge,cv2.COLOR_BGR2LAB)
             clahe_image.append(image_merge)
+            (L,A,Be) = cv2.split(image_merge)
+            clahe_result.append(L)
             pre_logger.info(dataname+" image "+str(i)+" Preposcessing")
             statusbar.update(1)
     pre_logger.debug("End of the Preproscessing of "+dataname)
@@ -77,5 +80,5 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     pre_logger.debug("The code run was sucessful")
     pre_logger.debug("exit code 0")
     
-    prepos_data = denoising_image
+    prepos_data = clahe_image
     return prepos_data, clahe_result, denoising_result 

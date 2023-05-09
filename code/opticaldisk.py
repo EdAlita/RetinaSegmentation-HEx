@@ -20,9 +20,9 @@ def opticaldisk(timestamp,loglevel,dataname,data):
     ye = np.zeros((2848,4288,1), dtype="uint8")
     result = []
     test_correction_number = [11,24]
-    test_correct_centers = [(2586,1143),(639,1138)]
+    test_correct_centers = [(2022,945),(489,942)]
     train_correction_number = [6,9,12,20,24,48]
-    train_correct_centers = [(2397,1221),(399,696),(2136,1059),(624,1065),(800,1000),(2256,1248)]
+    train_correct_centers = [(1905,999),(258,501),(1707,807),(513,831),(648,792),(1779,993)]
 
     data_length = len(data)
     
@@ -33,16 +33,16 @@ def opticaldisk(timestamp,loglevel,dataname,data):
     def correctionDisk(img,correction_number,correct_centers,number):
         for i in range(0,len(correction_number)):
             if number==correction_number[i]:
-                img_circle = cv2.circle(img,correct_centers[i],300,(0,0,0), -1)          
+                img_circle = cv2.circle(img,correct_centers[i],200,(0,0,0), -1)          
         return img_circle
     
     def extractDisk(img,image_number):
 
         """Create a dark disk on the optical disk of the image
-
+        
         Args:
             img (img): Image of creating the mask
-
+            
         Returns:
             img: mask of the image
         """
@@ -71,7 +71,7 @@ def opticaldisk(timestamp,loglevel,dataname,data):
                 img_resized = correctionDisk(img_resized,train_correction_number,train_correct_centers,image_number)
                 circle = False       
         if (circle):
-            cv2.circle(img_resized,maxLoc,300,(0,0,0), -1)
+            cv2.circle(img_resized,maxLoc,200,(0,0,0), -1)
         
         #cv2.selectROI()        
         return img_resized

@@ -29,7 +29,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data,originaldata):
     
     kernel = np.ones((5,5),np.uint8)
     strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6))
-    strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(25,25))
+    strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
     
     def jacksExodus(img,img_original):
         _, thresh = cv2.threshold(img, 160, 255, cv2.THRESH_BINARY)
@@ -53,7 +53,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data,originaldata):
         dilateImage = cv2.morphologyEx(img,cv2.MORPH_CLOSE,strutElement)
         result = cv2.morphologyEx(img,cv2.MORPH_CLOSE,strutElement2)
         
-        retValue, treshImage = cv2.threshold(img,125,255, cv2.THRESH_BINARY)
+        retValue, treshImage = cv2.threshold(img,150,255, cv2.THRESH_BINARY)
         I3 = cv2.bitwise_and(dilateImage,treshImage)
         I4 = cv2.bitwise_and(result,treshImage)
 

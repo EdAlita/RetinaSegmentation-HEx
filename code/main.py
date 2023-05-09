@@ -105,10 +105,10 @@ test_prepos,test_greenchannel,test_denoising = prepos(timestamp,loglevel,"Testin
 training_prepos,training_greenchannel,training_denoising = prepos(timestamp,loglevel,"Trainning",training_removeOpticalDisk[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
 
 directory_last = os.path.join(currentpath,'Results','Prepos','Tests')
-save_images(test_denoising[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Prepos")
+save_images(test_greenchannel[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Prepos")
 
 directory_last = os.path.join(currentpath,'Results','Prepos','Training')
-save_images(training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Prepos")
+save_images(training_greenchannel[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Prepos")
 
 main_logger.debug("Preprocessing had finnish")
 
@@ -117,8 +117,8 @@ main_logger.debug("Preprocessing had finnish")
 
 main_logger.debug("Hard Exodus had beging")
 
-test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
-training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_prepos[trainingList_lowerlimit:trainingList_highlimit])
+test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_greenchannel[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
+training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_greenchannel[trainingList_lowerlimit:trainingList_highlimit],training_prepos[trainingList_lowerlimit:trainingList_highlimit])
 
 directory_last = os.path.join(currentpath,'Results','HardExodus','Tests')
 save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodus")
