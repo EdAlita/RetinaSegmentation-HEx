@@ -8,7 +8,9 @@ from extendable_logger import *
 import numpy as np
 import argparse
 from opticaldisk import opticaldisk
-from hard_exodus import hardExodusSegmentation  
+from hard_exodus import hardExodusSegmentation
+import matplotlib.pyplot as plt
+import pandas as pd
 
 start_time = time.time()
 #####Creating the local variables use in this project
@@ -18,6 +20,7 @@ training_image = np.zeros((2848, 4288, 3),dtype="uint8")
 hard_exodus = np.zeros((2848, 4288, 3),dtype="uint8")
 training_dataset = []
 test_dataset = []
+training_groundthruth_dataset = []
 
 ###Parsing de arguments of the cmd line
 parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
@@ -43,14 +46,16 @@ main_logger.debug("Begin of the main.py code")
 
 #Open file to obtain local path to the data field
 filename = 'main.cfg'
-test_path,training_path = get_localDirectories(filename,main_logger)
+test_path,training_path,training_groundtruths_path = get_localDirectories(filename,main_logger)
 
 #Creating data sets of all the images.
 test_names= os.listdir(test_path)
 training_names= os.listdir(training_path)
+training_groundtruths_names=os.listdir(training_groundtruths_path)
 #sorting the images
 test_names.sort()
 training_names.sort()
+training_groundtruths_names.sort()
 
 #Getting len of the data
 testList_length = len(test_names)
@@ -66,7 +71,9 @@ for i in range(0,testList_length):
     
 for i in range(0,trainingList_length):
     training_image = cv2.imread(training_path+training_names[i],cv2.IMREAD_COLOR) 
-    training_dataset.append(training_image) 
+    training_groundtruth = cv2.imread(training_groundtruths_path+training_groundtruths_names[i],cv2.IMREAD_GRAYSCALE)
+    training_dataset.append(training_image)
+    training_groundthruth_dataset.append(training_groundtruth)
 
 main_logger.debug("The list length of the test is "+str(len(test_dataset)))
 main_logger.debug("The list length of the training is "+str(len(training_dataset)))
@@ -105,10 +112,10 @@ test_prepos,test_greenchannel,test_denoising = prepos(timestamp,loglevel,"Testin
 training_prepos,training_greenchannel,training_denoising = prepos(timestamp,loglevel,"Trainning",training_removeOpticalDisk[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
 
 directory_last = os.path.join(currentpath,'Results','Prepos','Tests')
-save_images(test_greenchannel[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Prepos")
+save_images(test_denoising[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Prepos")
 
 directory_last = os.path.join(currentpath,'Results','Prepos','Training')
-save_images(training_greenchannel[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Prepos")
+save_images(training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Prepos")
 
 main_logger.debug("Preprocessing had finnish")
 
@@ -117,8 +124,8 @@ main_logger.debug("Preprocessing had finnish")
 
 main_logger.debug("Hard Exodus had beging")
 
-test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_greenchannel[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
-training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_greenchannel[trainingList_lowerlimit:trainingList_highlimit],training_prepos[trainingList_lowerlimit:trainingList_highlimit])
+test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
+training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_prepos[trainingList_lowerlimit:trainingList_highlimit])
 
 directory_last = os.path.join(currentpath,'Results','HardExodus','Tests')
 save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodus")
@@ -131,6 +138,27 @@ save_images(test_hardExodusJacks[testList_lowerlimit:testList_highlimit],test_na
 
 directory_last = os.path.join(currentpath,'Results','HardExodusJacks','Training')
 save_images(training_hardExodusJacks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodusJacks")
+
+Precisions = []
+Recalls = []
+Index = []
+
+for i in range(0,trainingList_highlimit):
+    img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
+    precision = precision_score_(img_resized,training_hardExodus[i])
+    recall = recall_score_(img_resized,training_hardExodus[i])
+    Precisions.append(precision)
+    Recalls.append(recall)
+    Index.append("IDRiD_0{}".format(i+1))
+    print("IDRiD_0{}: Precision: {} | Recall: {}".format(i+1,precision,recall))
+    
+d = {'Precision': pd.Series(precision,index=Index),
+     'Recall' : pd.Series(recall,index=Index)   
+} 
+
+
+
+
 
 
 main_logger.debug("Hard Exodus had ending")
@@ -146,7 +174,6 @@ elapsed_time = elapsed_time/60
 
 hours, rem = divmod(elapsed_time, 3600)
 minutes, seconds = divmod(rem, 60)
-print("Program ended the elapsed time is ")  
-print("{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
+print("Program ended the elapsed time is {:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
 
   

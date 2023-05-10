@@ -50,12 +50,9 @@ def opticaldisk(timestamp,loglevel,dataname,data):
         
         (B, G, R) = cv2.split(img_resized)
         
-        for i in range(1,img_resized.shape[0]):
-            for j in range(1,img_resized.shape[1]):
-                ye[i,j] = 0.73925 * R[i,j] + 0.14675 * G[i,j]+ 0.114 * B[i,j]
-                
-            
-        #imageBlur = cv2.GaussianBlur(1-B,(25,25),0)
+        ye = cv2.addWeighted(R,0.73925,G,0.14675,0)
+        ye = cv2.addWeighted(ye,1,B,0.114,0)
+        
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(ye)
         img_resized = cv2.merge([B,G,R])
         
