@@ -1,72 +1,178 @@
-from glob import glob
 import cv2
-import logging
 import time
-import sys
 import os
-import logging
-import enlighten
+from proj_functions import *
+from preposcessing import prepos
+from masks import masks
+from extendable_logger import *
 import numpy as np
+import argparse
+from opticaldisk import opticaldisk
+from hard_exodus import hardExodusSegmentation
+import matplotlib.pyplot as plt
+import pandas as pd
 
-testpath='data/images/test/'
-trainingpath='data/images/training/'
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
-# Setup progress bar
-manager = enlighten.get_manager()
-pbar = manager.counter(total=24, desc='Processing step:', unit='ticks')
+start_time = time.time()
+#####Creating the local variables use in this project
+#Empty Image for processing and empty lists
+test_image = np.zeros((2848, 4288, 3), dtype = "uint8")
+training_image = np.zeros((2848, 4288, 3),dtype="uint8")
+hard_exodus = np.zeros((2848, 4288, 3),dtype="uint8")
+training_dataset = []
+test_dataset = []
+training_groundthruth_dataset = []
 
-class main:
-    def __init__(self) -> None:
-        logg=log()
-        logg.add_debug("exit code 0 %slog" % __file__)
+###Parsing de arguments of the cmd line
+parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
+parser.add_argument("-l", "--level", default=0,help='level of the internal logger (default: 0 , will not create logs)For more help check wiki on loggers for the correct value.')
+parser.add_argument("-ir","--intermedateresults", default=0,help='Creates intermedate results of the number that you provide.Store them in Log folder. Provide a number')
+parser.add_argument("-ll","--lowerlimit", default=100,help='Gives the lower limit to cut the data. Default value is the entire array of Data')
+parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limit to cut the data. Default value is the entire array of Data')
 
-    def rgb2gray(self):
-        for imsl in range(55,79):
-            img=cv2.imread(testpath +"IDRiD_"+ str(imsl) +".jpg")
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            cv2.imwrite("result/gray/IDRiD_"+ str(imsl) +".jpg",gray)
-            ret,thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
-            cv2.imwrite("result/thresh/IDRiD_"+ str(imsl) +".jpg",thresh)
-            thresh = cv2.medianBlur(thresh, 5)
-            cv2.imwrite("result/median/IDRiD_"+ str(imsl) +".jpg",thresh)
+#Geting all the the args
+arguments = parser.parse_args()
+#gettingCurrentpath
+currentpath = os.getcwd()
+file_structure(currentpath)
 
-            contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+#Allow Logging function
+loglevel = int(arguments.level)
+#Creating the time of running the code
+timestamp = time.strftime("%m%d%Y-%H%M%S")
 
-            # Draw the contours on the original image
-            cv2.drawContours(gray, contours, -1, (0, 0, 255), 2)
+### Creating Log only if you pass the level in command line
+main_logger = creatingLogStructure("main.log",loglevel,os.path.join(currentpath,'logs',timestamp),timestamp)
+main_logger.debug("Begin of the main.py code")
 
-            cv2.imwrite("result/contours/IDRiD_"+ str(imsl) +".jpg",gray)
+#Open file to obtain local path to the data field
+filename = 'main.cfg'
+test_path,training_path,training_groundtruths_path = get_localDirectories(filename,main_logger)
 
-            # # reshape the image into a 2D array
-            # img_reshaped = img.reshape(-1, 3).astype(np.float32)
+#Creating data sets of all the images.
+test_names= os.listdir(test_path)
+training_names= os.listdir(training_path)
+training_groundtruths_names=os.listdir(training_groundtruths_path)
+#sorting the images
+test_names.sort()
+training_names.sort()
+training_groundtruths_names.sort()
 
-            # # perform k-means clustering
-            # k = 5
-            # criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-            # flags = cv2.KMEANS_PP_CENTERS
-            # _, labels, centers = cv2.kmeans(img_reshaped, k, None, criteria, 5, flags)
+#Getting len of the data
+testList_length = len(test_names)
+trainingList_length = len(training_names)
 
-            # # assign colors to pixels based on cluster centers
-            # for i in range(img_reshaped.shape[0]):
-            #     img_reshaped[i] = centers[labels[i]]
+testList_lowerlimit,trainingList_lowerlimit = settingLimits(arguments.lowerlimit,0,0)
+testList_highlimit, trainingList_highlimit = settingLimits(arguments.highlimit,testList_length,trainingList_length)
 
-            # # convert the image back to its original shape and display it
-            # img_reshaped = img_reshaped.reshape(img.shape)
-            # img_reshaped = np.uint8(img_reshaped)
+#Reading all the images and append it to the empty list
+for i in range(0,testList_length):
+    test_image = cv2.imread(test_path+test_names[i],cv2.IMREAD_COLOR)
+    test_dataset.append(test_image)
+    
+for i in range(0,trainingList_length):
+    training_image = cv2.imread(training_path+training_names[i],cv2.IMREAD_COLOR) 
+    training_groundtruth = cv2.imread(training_groundtruths_path+training_groundtruths_names[i],cv2.IMREAD_GRAYSCALE)
+    training_dataset.append(training_image)
+    training_groundthruth_dataset.append(training_groundtruth)
 
-            # cv2.imwrite("result/kmens/IDRiD_"+ str(imsl) +".jpg",img_reshaped)
+main_logger.debug("The list length of the test is "+str(len(test_dataset)))
+main_logger.debug("The list length of the training is "+str(len(training_dataset)))
 
-            logger.info("Processing step %s" % imsl)
-            pbar.update()
+###Creating Masks
+"""
+main_logger.debug("Masking had beging")
+test_masks = masks(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
+training_masks = masks(timestamp,loglevel,"Trainning",training_dataset[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
+main_logger.debug("Masking had finnish")
+
+directory_last = os.path.join(currentpath,'Results','Masks','Tests')
+save_images(test_masks[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Masks")
+directory_last = os.path.join(currentpath,'Results','Masks','Training')
+save_images(training_masks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Masks")
+"""
+###Deleting the Optical Disk
+
+main_logger.debug("Optical Disk Removal had begging")
+
+test_removeOpticalDisk = opticaldisk(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit])
+training_removeOpticalDisk  = opticaldisk(timestamp,loglevel,"Training",training_dataset[trainingList_lowerlimit:trainingList_highlimit])
+
+directory_last = os.path.join(currentpath,'Results','OpticalDisk','Tests')
+save_images(test_removeOpticalDisk[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"OpticalDisk")
+
+directory_last = os.path.join(currentpath,'Results','OpticalDisk','Training')
+save_images(training_removeOpticalDisk[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"OpticalDisk")
+
+main_logger.debug("Optical Disk Removal had finnish")
+
+###Create Preposcessing
+main_logger.debug("Prepocessing had begging")
+
+test_prepos,test_greenchannel,test_denoising = prepos(timestamp,loglevel,"Testing",test_removeOpticalDisk[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
+training_prepos,training_greenchannel,training_denoising = prepos(timestamp,loglevel,"Trainning",training_removeOpticalDisk[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
+
+directory_last = os.path.join(currentpath,'Results','Prepos','Tests')
+save_images(test_denoising[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Prepos")
+
+directory_last = os.path.join(currentpath,'Results','Prepos','Training')
+save_images(training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Prepos")
+
+main_logger.debug("Preprocessing had finnish")
 
 
-m1=main()
+###Hard Exodus
 
-m1.rgb2gray()
+main_logger.debug("Hard Exodus had beging")
 
-# (1) image preprocessing 
-# (2) candidate extraction 
-# (3) feature extraction 
-# (4) classification 
-# (5) post processing.
+test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
+training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_prepos[trainingList_lowerlimit:trainingList_highlimit])
+
+directory_last = os.path.join(currentpath,'Results','HardExodus','Tests')
+save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodus")
+
+directory_last = os.path.join(currentpath,'Results','HardExodus','Training')
+save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodus")
+
+directory_last = os.path.join(currentpath,'Results','HardExodusJacks','Tests')
+save_images(test_hardExodusJacks[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodusJacks")
+
+directory_last = os.path.join(currentpath,'Results','HardExodusJacks','Training')
+save_images(training_hardExodusJacks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodusJacks")
+
+Precisions = []
+Recalls = []
+Index = []
+
+for i in range(0,trainingList_highlimit):
+    img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
+    precision = precision_score_(img_resized,training_hardExodus[i])
+    recall = recall_score_(img_resized,training_hardExodus[i])
+    Precisions.append(precision)
+    Recalls.append(recall)
+    Index.append("IDRiD_0{}".format(i+1))
+    print("IDRiD_0{}: Precision: {} | Recall: {}".format(i+1,precision,recall))
+    
+d = {'Precision': pd.Series(precision,index=Index),
+     'Recall' : pd.Series(recall,index=Index)   
+} 
+
+
+
+
+
+
+main_logger.debug("Hard Exodus had ending")
+        
+main_logger.debug("The code run was sucessful")
+main_logger.debug("exit code 0")
+
+end_time = time.time()
+
+elapsed_time = end_time - start_time
+
+elapsed_time = elapsed_time/60
+
+hours, rem = divmod(elapsed_time, 3600)
+minutes, seconds = divmod(rem, 60)
+print("Program ended the elapsed time is {:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
+
