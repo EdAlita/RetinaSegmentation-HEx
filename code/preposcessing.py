@@ -17,8 +17,7 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     Returns:
         image_list : prepos images with the alterations apply
     """
-    
-    imageholder = np.zeros((2848, 4288, 3), dtype = "uint8")  
+     
     clahe_image = []
     clahe_result= []
     denoising_result= []
@@ -41,13 +40,16 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
         for i in range(0,data_length):
             imageholder = data[i]
             (B, G, R) = cv2.split(imageholder)
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+            clahe = cv2.createCLAHE(clipLimit=0.8, tileGridSize=(8,8))
             B = clahe.apply(B)
             G = clahe.apply(G)
             R = clahe.apply(R)
-            clahe_result.append(G)
-            image_merge = cv2.merge([B, G, R ])
+
+            image_merge = cv2.merge([G, G, G])
+            image_merge = cv2.cvtColor(image_merge,cv2.COLOR_BGR2LAB)
             clahe_image.append(image_merge)
+            (L,A,Be) = cv2.split(image_merge)
+            clahe_result.append(L)
             pre_logger.info(dataname+" image "+str(i)+" Preposcessing")
             statusbar.update(1)
     pre_logger.debug("End of the Preproscessing of "+dataname)
@@ -57,7 +59,6 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     with tqdm(total=data_length,desc="Denoising of "+dataname) as statusbar:
         for i in range(0,data_length):
             imageholder = cv2.fastNlMeansDenoisingColored(clahe_image[i],None,3,3,21,7)
-            imageholder= abs(imageholder - 255)
             (B, G, R) = cv2.split(imageholder)
             denoising_result.append(G)
             denoising_image.append(imageholder)
@@ -79,5 +80,5 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     pre_logger.debug("The code run was sucessful")
     pre_logger.debug("exit code 0")
     
-    prepos_data = denoising_image
+    prepos_data = clahe_image
     return prepos_data, clahe_result, denoising_result 

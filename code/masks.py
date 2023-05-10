@@ -24,7 +24,7 @@ def masks(timestamp,loglevel,dataname,data,intermedateResult=0):
     data_length = len(data)
     
     #log_fuction
-    masks_logger = projloggger('masks',timestamp,dataname,loglevel,'tmp4')
+    masks_logger = projloggger('masks',timestamp,dataname,loglevel,'tmp24')
     masks_logger.debug("Begin of the masks.py code")
     
     def createMask(img):
@@ -39,7 +39,8 @@ def masks(timestamp,loglevel,dataname,data,intermedateResult=0):
         imgray = np.zeros((2848, 4288, 1), dtype = "uint8")
         imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         ret,tresh = cv2.threshold(imgray,100,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-        return tresh
+        img_mask = cv2.bitwise_and(img,img,mask=tresh)
+        return img_mask
     
     with tqdm(total=data_length,desc="Masks Extraction "+dataname) as pbar:
         for i in range(0,data_length):

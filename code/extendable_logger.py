@@ -38,6 +38,7 @@ def projloggger(function_name,timestr,dname,trash,tmp):
         #Create a different tmp number just for deleting so number no matters just not repeting
         logger = extendable_logger('main',tmp,trash)
         logger.disabled = True
+        os.chmod(tmp, 0o777)
         os.remove(tmp)
         return logger
     

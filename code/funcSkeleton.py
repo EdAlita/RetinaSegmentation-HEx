@@ -22,7 +22,6 @@ def function_name(timestr,trash,dname,data,intermedateResult=0):
             #the code run in this section will appear as a progress bar when run in cmd line
             pbar.update(1) #udating the progress in the bar
     
- 
     #Saving Intermedate Results on a PDF for the value save in intermedateResult
     if(intermedateResult!=0):
         

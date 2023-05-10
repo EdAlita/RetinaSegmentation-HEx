@@ -1,6 +1,7 @@
 import cv2
 from tqdm import tqdm
 import os
+import numpy as np
 
 def get_localDirectories ( cfgFile , logger):
     """Function to obtain the local Directories of the given files
@@ -69,13 +70,13 @@ def settingLimits(argumentsLimit,firstdefaultvalue,seconddefaultvalue):
     return firstlimit, secondlimit
 
 def TestTrainnig(above_path):
-    folders = ['Tests','Trainning']
+    folders = ['Tests','Training']
     for element in folders:
         path = os.path.join(above_path,element)
         if not os.path.exists(path):
             os.mkdir(path)            
 def SubFolders(above_path):
-    folders = ['HardExodus','Masks','OpticalDisk','Prepos']
+    folders = ['HardExodus','HardExodusJacks','OpticalDisk','Prepos']
     for element in folders:
         path = os.path.join(above_path,element)
         if not os.path.exists(path):
@@ -85,4 +86,38 @@ def file_structure(currentpath):
     Result = os.path.join(currentpath,'Results')
     if not (os.path.exists(Result)):
         os.mkdir(Result)
-    SubFolders(Result)    
+    SubFolders(Result)
+    
+def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
+    """
+    Converts an RGB image to YIQ color space
+    :param imgRGB: An Image in RGB
+    :return: A YIQ in image color space
+    """
+
+    YIQ = np.ndarray(imgRGB.shape)
+
+    YIQ[:, :, 0] = 0.299 * imgRGB[:, :, 0] + 0.587 * imgRGB[:, :, 1] + 0.114 * imgRGB[:, :, 2]
+    YIQ[:, :, 1] = 0.59590059 * imgRGB[:, :, 0] + (-0.27455667) * imgRGB[:, :, 1] + (-0.32134392) * imgRGB[:, :, 2]
+    YIQ[:, :, 2] = 0.21153661 * imgRGB[:, :, 0] + (-0.52273617) * imgRGB[:, :, 1] + 0.31119955 * imgRGB[:, :, 2]
+
+    return YIQ   
+
+def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
+    """
+    Converts an YIQ image to RGB color space
+    :param imgYIQ: An Image in YIQ
+    :return: A RGB in image color space
+    """
+    yiq_from_rgb = np.array([[0.299, 0.587, 0.114],
+                             [0.59590059, -0.27455667, -0.32134392],
+                             [0.21153661, -0.52273617, 0.31119955]])
+    rgb_from_yiq = np.linalg.inv(yiq_from_rgb)
+
+    RGB = np.ndarray(imgYIQ.shape)
+    RGB[:, :, 0] = 1.00000001 * imgYIQ[:, :, 0] + 0.95598634 * imgYIQ[:, :, 1] + 0.6208248 * imgYIQ[:, :, 2]
+    RGB[:, :, 1] = 0.99999999 * imgYIQ[:, :, 0] + (-0.27201283) * imgYIQ[:, :, 1] + (-0.64720424) * imgYIQ[:, :, 2]
+    RGB[:, :, 2] = 1.00000002 * imgYIQ[:, :, 0] + (-1.10674021) * imgYIQ[:, :, 1] + 1.70423049 * imgYIQ[:, :, 2]
+
+    return RGB 
+    
