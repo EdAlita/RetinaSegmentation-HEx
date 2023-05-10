@@ -40,13 +40,15 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
         for i in range(0,data_length):
             imageholder = data[i]
             (B, G, R) = cv2.split(imageholder)
-            clahe = cv2.createCLAHE(clipLimit=0.8, tileGridSize=(8,8))
+            
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(10,10))
             B = clahe.apply(B)
             G = clahe.apply(G)
             R = clahe.apply(R)
 
             image_merge = cv2.merge([G, G, G])
             image_merge = cv2.cvtColor(image_merge,cv2.COLOR_BGR2LAB)
+            
             clahe_image.append(image_merge)
             (L,A,Be) = cv2.split(image_merge)
             clahe_result.append(L)
@@ -58,9 +60,9 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     pre_logger.debug("Begin of the Denoising of "+dataname)
     with tqdm(total=data_length,desc="Denoising of "+dataname) as statusbar:
         for i in range(0,data_length):
-            imageholder = cv2.fastNlMeansDenoisingColored(clahe_image[i],None,3,3,21,7)
+            imageholder = cv2.fastNlMeansDenoisingColored(clahe_image[i],None,10,10,21,7)
             (B, G, R) = cv2.split(imageholder)
-            denoising_result.append(G)
+            denoising_result.append(B)
             denoising_image.append(imageholder)
             pre_logger.info(dataname+" image "+str(i)+" Denoising")
             statusbar.update(1)

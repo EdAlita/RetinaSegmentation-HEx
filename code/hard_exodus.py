@@ -3,7 +3,6 @@ from extendable_logger import projloggger
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 import numpy as np
-from proj_functions import transformRGB2YIQ,transformYIQ2RGB
 
 def hardExodusSegmentation(timestamp,loglevel,dataname,data,originaldata):
     """Segmentatio of the Hard Exodus in Fundus eye images
@@ -29,7 +28,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data,originaldata):
     
     kernel = np.ones((5,5),np.uint8)
     strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6))
-    strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+    strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(25,10))
     
     def jacksExodus(img,img_original):
         _, thresh = cv2.threshold(img, 160, 255, cv2.THRESH_BINARY)
@@ -50,15 +49,15 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data,originaldata):
     
     def hardExodus(img):
         
-        dilateImage = cv2.morphologyEx(img,cv2.MORPH_CLOSE,strutElement)
-        result = cv2.morphologyEx(img,cv2.MORPH_CLOSE,strutElement2)
+        _, tresh = cv2.threshold(img,125,255,cv2.THRESH_BINARY)
         
-        retValue, treshImage = cv2.threshold(img,150,255, cv2.THRESH_BINARY)
-        I3 = cv2.bitwise_and(dilateImage,treshImage)
-        I4 = cv2.bitwise_and(result,treshImage)
+        Opening = cv2.morphologyEx(tresh,cv2.MORPH_OPEN,strutElement,iterations=2)
+        Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,strutElement,iterations=2)
+        
 
-        Iresult = cv2.add(I3,I4)
-        return Iresult
+
+
+        return Closing
     
     
     with tqdm(total=data_length,desc="Hard Exodus Extraction "+dataname) as pbar:
