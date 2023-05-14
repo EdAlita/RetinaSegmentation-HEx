@@ -186,4 +186,3 @@ hours, rem = divmod(elapsed_time, 3600)
 minutes, seconds = divmod(rem, 60)
 print("Program ended the elapsed time is {:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
 
-  
