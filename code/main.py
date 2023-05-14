@@ -172,6 +172,12 @@ def evaluate_exodus(exodus,groud_truth,original_image):
             exodus_labels.append(0)
     return exodus_features,exodus_labels
 
+contours, _ = cv2.findContours(training_groundthruth_dataset[0],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+print(len(contours))
+cv2.drawContours(training_hardExodus[0],contours,-1,(125,0,0),4)
+
+cv2.imwrite("test.jpg",training_hardExodus[0])
+
         
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")

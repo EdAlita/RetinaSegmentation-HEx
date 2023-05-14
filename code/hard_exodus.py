@@ -50,7 +50,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     def hardExodus(img):
         zeros = np.zeros((2848,4288),dtype=np.uint8)
         kernel = np.ones((2, 2), np.uint8)
-        _, tresh = cv2.threshold(img,125,255,cv2.THRESH_BINARY)
+        _, tresh = cv2.threshold(img,100,255,cv2.THRESH_BINARY)
         Opening = cv2.morphologyEx(tresh,cv2.MORPH_OPEN,kernel,iterations=1)
         Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,kernel,iterations=1)
         
@@ -66,7 +66,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
         
         
         for cnt in range(0,len(largest_countour)): 
-            if cv2.contourArea(largest_countour[cnt]) < 10000:
+            if cv2.contourArea(largest_countour[cnt]) < 100000:
                 
                 #print(str(cv2.contourArea(cnt)))
                 cv2.drawContours(zeros,[largest_countour[cnt]],-1,(255,255,255),-1)
