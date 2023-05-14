@@ -66,11 +66,11 @@ testList_highlimit, trainingList_highlimit = settingLimits(arguments.highlimit,t
 
 #Reading all the images and append it to the empty list
 for i in range(0,testList_length):
-    test_image = cv2.imread(test_path+test_names[i],cv2.IMREAD_COLOR)
+    test_image = cv2.imread(test_path+test_names[i],cv2.COLOR_BGR2RGB)
     test_dataset.append(test_image)
     
 for i in range(0,trainingList_length):
-    training_image = cv2.imread(training_path+training_names[i],cv2.IMREAD_COLOR) 
+    training_image = cv2.imread(training_path+training_names[i],cv2.COLOR_BGR2RGB) 
     training_groundtruth = cv2.imread(training_groundtruths_path+training_groundtruths_names[i],cv2.IMREAD_GRAYSCALE)
     training_dataset.append(training_image)
     training_groundthruth_dataset.append(training_groundtruth)
@@ -91,7 +91,7 @@ directory_last = os.path.join(currentpath,'Results','Masks','Training')
 save_images(training_masks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Masks")
 """
 ###Deleting the Optical Disk
-
+"""
 main_logger.debug("Optical Disk Removal had begging")
 
 test_removeOpticalDisk = opticaldisk(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit])
@@ -104,12 +104,13 @@ directory_last = os.path.join(currentpath,'Results','OpticalDisk','Training')
 save_images(training_removeOpticalDisk[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"OpticalDisk")
 
 main_logger.debug("Optical Disk Removal had finnish")
+"""
 
 ###Create Preposcessing
 main_logger.debug("Prepocessing had begging")
 
-test_prepos,test_greenchannel,test_denoising = prepos(timestamp,loglevel,"Testing",test_removeOpticalDisk[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
-training_prepos,training_greenchannel,training_denoising = prepos(timestamp,loglevel,"Trainning",training_removeOpticalDisk[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
+test_greenchannel,test_denoising = prepos(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
+training_greenchannel,training_denoising = prepos(timestamp,loglevel,"Trainning",training_dataset[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
 
 directory_last = os.path.join(currentpath,'Results','Prepos','Tests')
 save_images(test_denoising[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Prepos")
@@ -124,8 +125,8 @@ main_logger.debug("Preprocessing had finnish")
 
 main_logger.debug("Hard Exodus had beging")
 
-test_hardExodus,test_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit],test_prepos[testList_lowerlimit:testList_highlimit])
-training_hardExodus,training_hardExodusJacks = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_prepos[trainingList_lowerlimit:trainingList_highlimit])
+test_hardExodus = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit])
+training_hardExodus = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit])
 
 directory_last = os.path.join(currentpath,'Results','HardExodus','Tests')
 save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodus")
@@ -133,20 +134,14 @@ save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[t
 directory_last = os.path.join(currentpath,'Results','HardExodus','Training')
 save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodus")
 
-directory_last = os.path.join(currentpath,'Results','HardExodusJacks','Tests')
-save_images(test_hardExodusJacks[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodusJacks")
-
-directory_last = os.path.join(currentpath,'Results','HardExodusJacks','Training')
-save_images(training_hardExodusJacks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodusJacks")
-
 Precisions = []
 Recalls = []
 Index = []
 
 for i in range(0,trainingList_highlimit):
-    img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
-    precision = precision_score_(img_resized,training_hardExodus[i])
-    recall = recall_score_(img_resized,training_hardExodus[i])
+    #img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
+    precision = precision_score_(training_groundtruth[i],training_hardExodus[i])
+    recall = recall_score_(training_groundtruth[i],training_hardExodus[i])
     Precisions.append(precision)
     Recalls.append(recall)
     Index.append("IDRiD_0{}".format(i+1))
@@ -156,12 +151,27 @@ d = {'Precision': pd.Series(precision,index=Index),
      'Recall' : pd.Series(recall,index=Index)   
 } 
 
-
-
-
-
-
 main_logger.debug("Hard Exodus had ending")
+
+def evaluate_exodus(exodus,groud_truth,original_image):
+    contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    idx=0
+    exodus_features = pd.DataFrame()
+    exodus_labels = []
+    
+    for cnt in contours:
+        idx += 1
+        x,y,w,h = cv2.boundingRect(cnt)
+        regions_exodus = exodus[y:y+h,x:x+w]
+        regions_groundtruth = groud_truth[y:y+h,x:x+w]
+        area_evaluation = evaluation(regions_exodus,regions_groundtruth)
+        exodus_features = exodus_features.append(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_RGB2GRAY))
+        if ( area_evaluation > 0.1):
+            exodus_labels.append(1)
+        else:
+            exodus_labels.append(0)
+    return exodus_features,exodus_labels
+
         
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")
