@@ -45,13 +45,14 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
             B = clahe.apply(B)
             G = clahe.apply(G)
             R = clahe.apply(R)
-
             image_merge = cv2.merge([G, G, G])
             image_merge = cv2.cvtColor(image_merge,cv2.COLOR_BGR2LAB)
             
             clahe_image.append(image_merge)
             (L,A,Be) = cv2.split(image_merge)
+
             clahe_result.append(L)
+
             pre_logger.info(dataname+" image "+str(i)+" Preposcessing")
             statusbar.update(1)
     pre_logger.debug("End of the Preproscessing of "+dataname)

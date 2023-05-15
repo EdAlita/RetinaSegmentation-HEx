@@ -11,6 +11,7 @@ from opticaldisk import opticaldisk
 from hard_exodus import hardExodusSegmentation
 import matplotlib.pyplot as plt
 import pandas as pd
+from report_generate import reportGen
 
 start_time = time.time()
 #####Creating the local variables use in this project
@@ -156,13 +157,22 @@ d = {'Precision': pd.Series(precision,index=Index),
      'Recall' : pd.Series(recall,index=Index)   
 } 
 
+tablehead=[
+    'Original Image',
+    # 'OpticalDisk',
+    'PreProcess',
+    'Hard Exudate',
+    'Precision',
+    'Recall']
 
-
-
-
+original_img=os.path.join(currentpath,'data','images','Training')+'/'
+# opticaldisk=os.path.join(currentpath,'Results','OpticalDisk','Training')+'/'
+preprocess=os.path.join(currentpath,'Results','Prepos','Training')+'/'
+hardexudate=os.path.join(currentpath,'Results','HardExodus','Training')+'/'
+filepath=[original_img,preprocess, hardexudate]
+reportGen(tablehead,filepath,Precisions,Recalls)
 
 main_logger.debug("Hard Exodus had ending")
-        
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")
 
