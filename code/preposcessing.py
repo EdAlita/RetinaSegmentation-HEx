@@ -39,20 +39,10 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     with tqdm(total=data_length,desc="Preposcessing "+dataname) as statusbar:
         for i in range(0,data_length):
             imageholder = data[i]
-            (B, G, R) = cv2.split(imageholder)
-            
+            (R, G, B) = cv2.split(imageholder) 
             clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(10,10))
-            B = clahe.apply(B)
             G = clahe.apply(G)
-            R = clahe.apply(R)
-            image_merge = cv2.merge([G, G, G])
-            image_merge = cv2.cvtColor(image_merge,cv2.COLOR_BGR2LAB)
-            
-            clahe_image.append(image_merge)
-            (L,A,Be) = cv2.split(image_merge)
-
-            clahe_result.append(L)
-
+            clahe_result.append(G)
             pre_logger.info(dataname+" image "+str(i)+" Preposcessing")
             statusbar.update(1)
     pre_logger.debug("End of the Preproscessing of "+dataname)
@@ -61,10 +51,8 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     pre_logger.debug("Begin of the Denoising of "+dataname)
     with tqdm(total=data_length,desc="Denoising of "+dataname) as statusbar:
         for i in range(0,data_length):
-            imageholder = cv2.fastNlMeansDenoisingColored(clahe_image[i],None,10,10,21,7)
-            (B, G, R) = cv2.split(imageholder)
-            denoising_result.append(B)
-            denoising_image.append(imageholder)
+            imageholder = cv2.fastNlMeansDenoising(clahe_result[i],3,21,7)
+            denoising_result.append(imageholder)
             pre_logger.info(dataname+" image "+str(i)+" Denoising")
             statusbar.update(1)
     pre_logger.debug("End of the Denoising of "+dataname)
@@ -83,5 +71,4 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     pre_logger.debug("The code run was sucessful")
     pre_logger.debug("exit code 0")
     
-    prepos_data = clahe_image
-    return prepos_data, clahe_result, denoising_result 
+    return clahe_result, denoising_result 

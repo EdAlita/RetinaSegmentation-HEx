@@ -1,5 +1,5 @@
 import os
-from pyhtml2pdf import converter
+# from pyhtml2pdf import converter
 import numpy as np
 
 def reportGen(info,img_path,data,data1):
