@@ -39,6 +39,7 @@ def prepos(timestamp,loglevel,dataname,data,intermedateResult=0):
     with tqdm(total=data_length,desc="Preposcessing "+dataname) as statusbar:
         for i in range(0,data_length):
             imageholder = data[i]
+            #LAB_STRE= cv2.normalize(imageholder,None,alpha=imageholder.min(), beta=300,norm_type=cv2.NORM_MINMAX)
             (R, G, B) = cv2.split(imageholder) 
             clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(10,10))
             G = clahe.apply(G)
