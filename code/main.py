@@ -175,23 +175,26 @@ def evaluate_exodus(exodus,groud_truth,original_image):
             exodus_labels.append(0)
     return exodus_features,exodus_labels
 
+contours, _ = cv2.findContours(training_groundthruth_dataset[2],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
+cv2.drawContours(training_hardExodus[1],contours,-1,(125,0,0),4)
+
+cv2.imwrite("test.jpg",training_hardExodus[1])
 
 directory_last = os.path.join(currentpath,'Results','Contour','Training')+"/"
 for i in range(len(training_hardExodus)):
     contours, _ = cv2.findContours(training_groundthruth_dataset[i],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     cImg=training_hardExodus[i]
     img_mask=cv2.cvtColor(cImg,cv2.COLOR_GRAY2RGB)
-    cv2.drawContours(img_mask,contours,-1,(0,255,0),4)
+    cv2.drawContours(img_mask,contours,-1,(0,0,255),4)
     cv2.imwrite(directory_last+training_names[i],img_mask)
-    print(training_names[i])
 
 tablehead=[
     'Original Image',
     # 'OpticalDisk',
-    'PreProcess',
-    'ImageContour'
-    'Hard Exudate',
+    # 'PreProcess',
+    'ImageContour',
+    # 'Hard Exudate',
     'Precision',
     'Recall']
 
@@ -200,7 +203,7 @@ original_img=os.path.join(currentpath,'data','images','Training')+'/'
 preprocess=os.path.join(currentpath,'Results','Prepos','Training')+'/'
 contour=os.path.join(currentpath,'Results','Contour','Training')+'/'
 hardexudate=os.path.join(currentpath,'Results','HardExodus','Training')+'/'
-filepath=[original_img,preprocess,contour, hardexudate]
+filepath=[original_img,contour]
 reportGen(tablehead,filepath,Precisions,Recalls)
 
 main_logger.debug("Hard Exodus had ending")

@@ -5,6 +5,7 @@ import numpy as np
 def reportGen(info,img_path,data,data1):
     img_list =img_path[0]
     img_list=os.listdir(img_list)
+    img_list.sort()
     precision_p=np.sum(data)/len(img_list)
     recall_p=np.sum(data1)/len(img_list)
     html_string='<html><head> <style>table, th, td {border: 1px solid black;border-collapse: collapse;}</style><title></title></head><body>'
@@ -19,8 +20,9 @@ def reportGen(info,img_path,data,data1):
     for sl in range(0, len(img_list)):
         html_string +="<tr>"
         for path in range(0, len(img_path)):
-            ld=os.listdir(img_path[path])
-            html_string +="<td>"+ ld[sl] +"<br/><img width='350' src='"+ img_path[path] + ld[sl] +"'></td>"
+            if not path == '.DS_Store':
+                ld=os.listdir(img_path[path])
+                html_string +="<td>"+ ld[sl] +"<br/><img width='600' src='"+ img_path[path] + ld[sl] +"'></td>"
 
         html_string +="<td>"+ str(data[sl]) +"</td>"
         html_string +="<td>"+ str(data1[sl]) +"</td>"
