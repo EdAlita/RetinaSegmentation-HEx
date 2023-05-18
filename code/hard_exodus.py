@@ -30,28 +30,11 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
     strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(9,9))
     strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(25,10))
     
-    def jacksExodus(img,img_original):
-        _, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)
-        kernel = np.ones((3, 3), np.uint8)
-        opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel, iterations=2)
-        dist_transform = cv2.distanceTransform(closing, cv2.DIST_L2, 3)
-        _, sure_fg = cv2.threshold(dist_transform, 0.05*dist_transform.max(), 255, cv2.THRESH_BINARY)
-        sure_fg = np.uint8(sure_fg)
-        unknown = cv2.subtract(opening, sure_fg)
-        _, markers = cv2.connectedComponents(sure_fg)
-        markers = markers+1
-        markers[unknown == 255] = 0
-        markers = cv2.watershed(img_original, markers)
-        img_original[markers == -1] = [255, 0, 0]
-        return img_original
-    
-    
     def hardExodus(img):
         zeros = np.zeros((2848,4288),dtype=np.uint8)
         kernel = np.ones((3, 3), np.uint8)
         histogram=cv2.calcHist(img, [0], None, [256],(0,255), accumulate=False)
-        _, tresh = cv2.threshold(img,np.percentile(img,65),255,cv2.THRESH_BINARY)
+        _, tresh = cv2.threshold(img,np.percentile(img,95),255,cv2.THRESH_BINARY)
         Opening = cv2.morphologyEx(tresh,cv2.MORPH_OPEN,kernel,iterations=1)
         Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,kernel,iterations=1)
         
@@ -59,8 +42,7 @@ def hardExodusSegmentation(timestamp,loglevel,dataname,data):
         largest_countour = sorted(contours,key=cv2.contourArea)
         for cnt in range(0,len(largest_countour)):
             cv2.drawContours(zeros,[largest_countour[cnt]],-1,(255,255,255),-1)
-        
-     
+            
         return Closing
     
     
