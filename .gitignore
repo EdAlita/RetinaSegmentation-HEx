@@ -36,8 +36,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-#skip folder
-.DS_Store
+
 
 # Unit test / coverage reports
 htmlcov/
@@ -168,3 +167,7 @@ cython_debug/
 Results/
 logs/
 *.zip
+
+
+#skip folder
+.DS_Store/
