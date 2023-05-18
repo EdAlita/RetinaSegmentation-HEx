@@ -127,8 +127,6 @@ main_logger.debug("Hard Exodus had ending")
 contours, _ = cv2.findContours(training_groundthruth_dataset[1],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 cv2.drawContours(training_hardExodus[1],contours,-1,(125,0,0),4)
 
-
-
 cv2.imwrite("test.jpg",training_hardExodus[1])
 
 directory_last = os.path.join(currentpath,'Results','Contour','Training')+"/"
@@ -153,7 +151,7 @@ original_img=os.path.join(currentpath,'data','images','Training')+'/'
 preprocess=os.path.join(currentpath,'Results','Prepos','Training')+'/'
 contour=os.path.join(currentpath,'Results','Contour','Training')+'/'
 hardexudate=os.path.join(currentpath,'Results','HardExodus','Training')+'/'
-filepath=[original_img,contour]
+filepath=[contour]
 reportGen(tablehead,filepath,Precisions,Recalls)
 
 main_logger.debug("Hard Exodus had ending")

@@ -14,15 +14,14 @@ def reportGen(info,img_path,data,data1):
     html_string +="<h2>Recall: "+  str(round(recall_p,3)) +"</h2>"
     html_string +="<table><tr>"
     for head in range(0,len(info)):
-        html_string +="<th width='40%'>"+ info[head] +"</th>"
+        html_string +="<th width=''>"+ info[head] +"</th>"
     html_string +="</tr>"
    
     for sl in range(0, len(img_list)):
         html_string +="<tr>"
         for path in range(0, len(img_path)):
-            if not path == '.DS_Store':
-                ld=os.listdir(img_path[path])
-                html_string +="<td>"+ ld[sl] +"<br/><img width='600' src='"+ img_path[path] + ld[sl] +"'></td>"
+            ld=os.listdir(img_path[path])
+            html_string +="<td>"+ ld[sl] +"<br/><img width='800' src='"+ img_path[path] + ld[sl] +"'></td>"
 
         html_string +="<td>"+ str(data[sl]) +"</td>"
         html_string +="<td>"+ str(data1[sl]) +"</td>"
