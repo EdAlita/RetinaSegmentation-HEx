@@ -11,6 +11,8 @@ from opticaldisk import opticaldisk
 from hard_exodus import hardExodusSegmentation
 import matplotlib.pyplot as plt
 import pandas as pd
+from report_generate import reportGen
+from drawContour import fContour
 
 start_time = time.time()
 #####Creating the local variables use in this project
@@ -106,6 +108,7 @@ save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[t
 directory_last = os.path.join(currentpath,'Results','HardExodus','Training')
 save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodus")
 
+
 Precisions = []
 Recalls = []
 Index = []
@@ -131,6 +134,32 @@ cv2.drawContours(training_hardExodus[1],contours,-1,(125,0,0),4)
 
 cv2.imwrite("test.jpg",training_hardExodus[1])
 
+directory_last = os.path.join(currentpath,'Results','Contour','Training')+"/"
+for i in range(len(training_hardExodus)):
+    contours, _ = cv2.findContours(training_groundthruth_dataset[i],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    cImg=training_hardExodus[i]
+    img_mask=cv2.cvtColor(cImg,cv2.COLOR_GRAY2RGB)
+    cv2.drawContours(img_mask,contours,-1,(0,0,255),4)
+    cv2.imwrite(directory_last+training_names[i],img_mask)
+
+tablehead=[
+    'Original Image',
+    # 'OpticalDisk',
+    # 'PreProcess',
+    'ImageContour',
+    # 'Hard Exudate',
+    'Precision',
+    'Recall']
+
+original_img=os.path.join(currentpath,'data','images','Training')+'/'
+# opticaldisk=os.path.join(currentpath,'Results','OpticalDisk','Training')+'/'
+preprocess=os.path.join(currentpath,'Results','Prepos','Training')+'/'
+contour=os.path.join(currentpath,'Results','Contour','Training')+'/'
+hardexudate=os.path.join(currentpath,'Results','HardExodus','Training')+'/'
+filepath=[original_img,contour]
+reportGen(tablehead,filepath,Precisions,Recalls)
+
+main_logger.debug("Hard Exodus had ending")
         
 main_logger.debug("The code run was sucessful")
 main_logger.debug("exit code 0")
