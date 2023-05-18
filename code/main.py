@@ -80,34 +80,6 @@ for i in range(0,trainingList_length):
 main_logger.debug("The list length of the test is "+str(len(test_dataset)))
 main_logger.debug("The list length of the training is "+str(len(training_dataset)))
 
-###Creating Masks
-"""
-main_logger.debug("Masking had beging")
-test_masks = masks(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
-training_masks = masks(timestamp,loglevel,"Trainning",training_dataset[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
-main_logger.debug("Masking had finnish")
-
-directory_last = os.path.join(currentpath,'Results','Masks','Tests')
-save_images(test_masks[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Masks")
-directory_last = os.path.join(currentpath,'Results','Masks','Training')
-save_images(training_masks[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Masks")
-"""
-###Deleting the Optical Disk
-"""
-main_logger.debug("Optical Disk Removal had begging")
-
-test_removeOpticalDisk = opticaldisk(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit])
-training_removeOpticalDisk  = opticaldisk(timestamp,loglevel,"Training",training_dataset[trainingList_lowerlimit:trainingList_highlimit])
-
-directory_last = os.path.join(currentpath,'Results','OpticalDisk','Tests')
-save_images(test_removeOpticalDisk[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"OpticalDisk")
-
-directory_last = os.path.join(currentpath,'Results','OpticalDisk','Training')
-save_images(training_removeOpticalDisk[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"OpticalDisk")
-
-main_logger.debug("Optical Disk Removal had finnish")
-"""
-
 ###Create Preposcessing
 main_logger.debug("Prepocessing had begging")
 
@@ -156,27 +128,8 @@ d = {'Precision': pd.Series(precision,index=Index),
 
 main_logger.debug("Hard Exodus had ending")
 
-def evaluate_exodus(exodus,groud_truth,original_image):
-    contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-    idx=0
-    exodus_features = pd.DataFrame()
-    exodus_labels = []
-    
-    for cnt in contours:
-        idx += 1
-        x,y,w,h = cv2.boundingRect(cnt)
-        regions_exodus = exodus[y:y+h,x:x+w]
-        regions_groundtruth = groud_truth[y:y+h,x:x+w]
-        area_evaluation = evaluation(regions_exodus,regions_groundtruth)
-        exodus_features = exodus_features.append(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_RGB2GRAY))
-        if ( area_evaluation > 0.1):
-            exodus_labels.append(1)
-        else:
-            exodus_labels.append(0)
-    return exodus_features,exodus_labels
-
-contours, _ = cv2.findContours(training_groundthruth_dataset[2],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-
+contours, _ = cv2.findContours(training_groundthruth_dataset[1],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+print(len(contours))
 cv2.drawContours(training_hardExodus[1],contours,-1,(125,0,0),4)
 
 cv2.imwrite("test.jpg",training_hardExodus[1])

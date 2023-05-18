@@ -147,7 +147,26 @@ def iou(groundtruth_mask, pred_mask):
     union = np.sum(pred_mask) + np.sum(groundtruth_mask) - intersect
     iou = np.mean(intersect/union)
     return round(iou, 3)
+
+def evaluate_exodus(exodus,groud_truth,original_image):
+    contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    idx=0
+    exodus_features = pd.DataFrame()
+    exodus_labels = []
     
+    for cnt in contours:
+        idx += 1
+        x,y,w,h = cv2.boundingRect(cnt)
+        regions_exodus = exodus[y:y+h,x:x+w]
+        regions_groundtruth = groud_truth[y:y+h,x:x+w]
+        area_evaluation = evaluation(regions_exodus,regions_groundtruth)
+        exodus_features = exodus_features.append(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_RGB2GRAY))
+        if ( area_evaluation > 0.1):
+            exodus_labels.append(1)
+        else:
+            exodus_labels.append(0)
+            
+    return exodus_features,exodus_labels
             
                 
             
