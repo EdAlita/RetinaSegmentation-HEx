@@ -113,7 +113,7 @@ Index = []
 for i in range(0,trainingList_highlimit):
     img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
     precision = precision_score_(img_resized,training_hardExodus[i])
-    recall = recall_score_(img_resized,training_hardExodus[i])
+    recall = evaluation(training_hardExodus[i],img_resized)
     Precisions.append(precision)
     Recalls.append(recall)
     Index.append("IDRiD_0{}".format(i+1))
