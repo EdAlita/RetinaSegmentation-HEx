@@ -170,4 +170,5 @@ logs/
 
 
 #skip folder
-.DS_Store/
+*.DS_Store
+.DS_Store?
