@@ -161,7 +161,7 @@ def evaluate_exodus(exodus,groud_truth,original_image):
         regions_groundtruth = groud_truth[y:y+h,x:x+w]
         area_evaluation = evaluation(regions_exodus,regions_groundtruth)
         exodus_features = exodus_features.append(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_RGB2GRAY))
-        if ( area_evaluation > 0.1):
+        if ( area_evaluation < 0.1):
             exodus_labels.append(1)
         else:
             exodus_labels.append(0)

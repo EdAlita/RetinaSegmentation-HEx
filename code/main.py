@@ -111,23 +111,20 @@ Recalls = []
 Index = []
 
 for i in range(0,trainingList_highlimit):
-    #img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
-    precision = precision_score_(training_groundtruth[i],training_hardExodus[i])
-    recall = recall_score_(training_groundtruth[i],training_hardExodus[i])
+    img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
+    precision = precision_score_(img_resized,training_hardExodus[i])
+    recall = recall_score_(img_resized,training_hardExodus[i])
     Precisions.append(precision)
     Recalls.append(recall)
     Index.append("IDRiD_0{}".format(i+1))
     print("IDRiD_0{}: Precision: {} | Recall: {}".format(i+1,precision,recall))
-    
-d = {'Precision': pd.Series(precision,index=Index),
-     'Recall' : pd.Series(recall,index=Index)   
-} 
 
 main_logger.debug("Hard Exodus had ending")
 
 contours, _ = cv2.findContours(training_groundthruth_dataset[1],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-print(len(contours))
 cv2.drawContours(training_hardExodus[1],contours,-1,(125,0,0),4)
+
+
 
 cv2.imwrite("test.jpg",training_hardExodus[1])
 
