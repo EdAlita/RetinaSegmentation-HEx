@@ -1,143 +1,175 @@
-import cv2
-import time
-import os
-from proj_functions import *
-from preposcessing import prepos
-from masks import masks
-from extendable_logger import *
+import cv2,time,os,argparse
+from proj_functions import proj_functions
+from preposcessing import preprocessing
+from hard_exodus import HardExodus
 import numpy as np
-import argparse
-from opticaldisk import opticaldisk
-from hard_exodus import hardExodusSegmentation
-import matplotlib.pyplot as plt
-import pandas as pd
 
-start_time = time.time()
-#####Creating the local variables use in this project
-#Empty Image for processing and empty lists
-test_image = np.zeros((2848, 4288, 3), dtype = "uint8")
-training_image = np.zeros((2848, 4288, 3),dtype="uint8")
-hard_exodus = np.zeros((2848, 4288, 3),dtype="uint8")
-training_dataset = []
-test_dataset = []
-training_groundthruth_dataset = []
+class pipeline():
+    def __init__(self):
+        self.start_time = time.time()
+        self.test_image = np.zeros((2848, 4288, 3), dtype = "uint8")
+        self.training_image = np.zeros((2848, 4288, 3),dtype="uint8")
+        self.hard_exodus = np.zeros((2848, 4288, 3),dtype="uint8")
+        self.training_dataset = []
+        self.test_dataset = []
+        self.training_groundthruth_dataset = []
+        self.parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
+        self.parser.add_argument("-ll","--lowerlimit", default=100,help='Gives the lower limit to cut the data. Default value is the entire array of Data')
+        self.parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limit to cut the data. Default value is the entire array of Data')
+        self.currentpath = os.getcwd()
+        self.test_prepos_path = os.path.join(self.currentpath,'Results','Prepos','Tests')
+        self.training_prepos_path = os.path.join(self.currentpath,'Results','Prepos','Training')
+        self.test_exodus_path = os.path.join(self.currentpath,'Results','HardExodus','Tests')
+        self.training_exodus_path = os.path.join(self.currentpath,'Results','HardExodus','Training')
+        self.test_exodusJ_path = os.path.join(self.currentpath,'Results','HardExodusJacks','Tests')
+        self.training_exodusJ_path = os.path.join(self.currentpath,'Results','HardExodusJacks','Training')
+        self.helpers = proj_functions()
+        
+    def preprocessing_featureExtraction(self):
+        ##Geting all the the args
+        arguments = self.parser.parse_args()
+        
+        self.helpers.file_structure()
+        
+        #Open file to obtain local path to the data field
+        test_path,training_path,training_groundtruths_path = self.helpers.get_localDirectories()
+        
+        #Creating data sets of all the images.
+        test_names= os.listdir(test_path)
+        training_names= os.listdir(training_path)
+        training_groundtruths_names=os.listdir(training_groundtruths_path)
+        
+        #sorting the images
+        test_names.sort()
+        training_names.sort()
+        training_groundtruths_names.sort()
+        
+        #Getting len of the data
+        testList_length = len(test_names)
+        trainingList_length = len(training_names)
+        
+        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(arguments.lowerlimit,0,0)
+        testList_highlimit, trainingList_highlimit = self.helpers.settingLimits(arguments.highlimit,testList_length,trainingList_length)
+        #Reading all the images and append it to the empty list
+        for i in range(0,testList_length):
+            
+            self.test_dataset.append(
+                cv2.imread(test_path+test_names[i],cv2.COLOR_BGR2RGB)
+            )
+        
+        for i in range(0,trainingList_length):
+            
+            self.training_dataset.append(
+                cv2.imread(training_path+training_names[i],cv2.COLOR_BGR2RGB)
+            )
+            
+            self.training_groundthruth_dataset.append(
+                cv2.imread(training_groundtruths_path+training_groundtruths_names[i],cv2.IMREAD_UNCHANGED)
+            )
+        
+        test_prepos = preprocessing(
+            "Tests",
+            self.test_dataset[testList_lowerlimit:testList_highlimit]
+            )
+        
+        test_greenchannel,test_denoising,test_median = test_prepos.get_Prepocessing()
+        
+        training_prepos = preprocessing(
+            "Training",
+            self.training_dataset[trainingList_lowerlimit:trainingList_highlimit]   
+        )
+        
+        training_greenchannel,training_denoising, training_median = training_prepos.get_Prepocessing()
+        
+        self.helpers.save_images(
+            test_denoising[testList_lowerlimit:testList_highlimit],
+            test_names[testList_lowerlimit:testList_highlimit],
+            "Tests",
+            self.test_prepos_path,
+            "Prepos")
+        
+        self.helpers.save_images(
+            training_denoising[trainingList_lowerlimit:trainingList_highlimit],
+            training_names[trainingList_lowerlimit:trainingList_highlimit],
+            "Training",
+            self.training_prepos_path,
+            "Prepos")
+        
+        ###Hard Exodus
+        test_Exodus = HardExodus(
+            "Test",
+            test_denoising[testList_lowerlimit:testList_highlimit],
+            test_median[testList_lowerlimit:testList_highlimit])
+        
+        training_Exodus = HardExodus(
+            "Training",
+            training_denoising[trainingList_lowerlimit:trainingList_highlimit],
+            training_median[trainingList_lowerlimit:trainingList_highlimit])
+        
+        test_hardExodus, test_hardExodusJ = test_Exodus.getHardExodus()
+        training_hardExodus, training_hardExodusJ= training_Exodus.getHardExodus()
+        
+        self.helpers.save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],
+                            test_names[testList_lowerlimit:testList_highlimit],
+                            "Tests",
+                            self.test_exodus_path,
+                            "HardExodus")
+        
+        self.helpers.save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],
+                            training_names[trainingList_lowerlimit:trainingList_highlimit],
+                            "Training",
+                            self.training_exodus_path,
+                            "HardExodus")
+        
+        self.helpers.save_images(test_hardExodusJ[testList_lowerlimit:testList_highlimit],
+                            test_names[testList_lowerlimit:testList_highlimit],
+                            "Tests",
+                            self.test_exodusJ_path,
+                            "HardExodus")
+        
+        self.helpers.save_images(training_hardExodusJ[trainingList_lowerlimit:trainingList_highlimit],
+                            training_names[trainingList_lowerlimit:trainingList_highlimit],
+                            "Training",
+                            self.training_exodusJ_path,
+                            "HardExodus")
+        
+        
+        for i in range(0,trainingList_highlimit):
+            __, imageholder = cv2.threshold(self.training_groundthruth_dataset[i],5,255,cv2.THRESH_BINARY)
+            imageholder = cv2.resize(imageholder,None,fx=0.60,fy=0.60)       
+            countours, __ = cv2.findContours(imageholder,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE) [-2:]
+            cnt, numcountours = self.helpers.evaluate_exodus(training_hardExodus[i],imageholder,self.training_dataset[i])
+            
+            print("HARD_EXODUS IDRiD{}: Real Exodus: {} Exodus Accepted: {} Percentaje: {:%}".format(i,len(countours),cnt,cnt/len(countours)))
+            
+            cnt, numcountours = self.helpers.evaluate_exodus(training_hardExodusJ[i],self.training_groundthruth_dataset[i],self.training_dataset[i])
 
-###Parsing de arguments of the cmd line
-parser = argparse.ArgumentParser("Project to detected Hard and Soft Exodus")
-parser.add_argument("-l", "--level", default=0,help='level of the internal logger (default: 0 , will not create logs)For more help check wiki on loggers for the correct value.')
-parser.add_argument("-ir","--intermedateresults", default=0,help='Creates intermedate results of the number that you provide.Store them in Log folder. Provide a number')
-parser.add_argument("-ll","--lowerlimit", default=100,help='Gives the lower limit to cut the data. Default value is the entire array of Data')
-parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limit to cut the data. Default value is the entire array of Data')
-
-#Geting all the the args
-arguments = parser.parse_args()
-#gettingCurrentpath
-currentpath = os.getcwd()
-file_structure(currentpath)
-
-#Allow Logging function
-loglevel = int(arguments.level)
-#Creating the time of running the code
-timestamp = time.strftime("%m%d%Y-%H%M%S")
-
-### Creating Log only if you pass the level in command line
-main_logger = creatingLogStructure("main.log",loglevel,os.path.join(currentpath,'logs',timestamp),timestamp)
-main_logger.debug("Begin of the main.py code")
-
-#Open file to obtain local path to the data field
-filename = 'main.cfg'
-test_path,training_path,training_groundtruths_path = get_localDirectories(filename,main_logger)
-
-#Creating data sets of all the images.
-test_names= os.listdir(test_path)
-training_names= os.listdir(training_path)
-training_groundtruths_names=os.listdir(training_groundtruths_path)
-#sorting the images
-test_names.sort()
-training_names.sort()
-training_groundtruths_names.sort()
-
-#Getting len of the data
-testList_length = len(test_names)
-trainingList_length = len(training_names)
-
-testList_lowerlimit,trainingList_lowerlimit = settingLimits(arguments.lowerlimit,0,0)
-testList_highlimit, trainingList_highlimit = settingLimits(arguments.highlimit,testList_length,trainingList_length)
-
-#Reading all the images and append it to the empty list
-for i in range(0,testList_length):
-    test_image = cv2.imread(test_path+test_names[i],cv2.COLOR_BGR2RGB)
-    test_dataset.append(test_image)
-    
-for i in range(0,trainingList_length):
-    training_image = cv2.imread(training_path+training_names[i],cv2.COLOR_BGR2RGB) 
-    training_groundtruth = cv2.imread(training_groundtruths_path+training_groundtruths_names[i],cv2.IMREAD_GRAYSCALE)
-    training_dataset.append(training_image)
-    training_groundthruth_dataset.append(training_groundtruth)
-
-main_logger.debug("The list length of the test is "+str(len(test_dataset)))
-main_logger.debug("The list length of the training is "+str(len(training_dataset)))
-
-###Create Preposcessing
-main_logger.debug("Prepocessing had begging")
-
-test_greenchannel,test_denoising = prepos(timestamp,loglevel,"Testing",test_dataset[testList_lowerlimit:testList_highlimit],intermedateResult=int(arguments.intermedateresults))
-training_greenchannel,training_denoising = prepos(timestamp,loglevel,"Trainning",training_dataset[trainingList_lowerlimit:trainingList_highlimit],intermedateResult=int(arguments.intermedateresults))
-
-directory_last = os.path.join(currentpath,'Results','Prepos','Tests')
-save_images(test_denoising[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"Prepos")
-
-directory_last = os.path.join(currentpath,'Results','Prepos','Training')
-save_images(training_denoising[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Training",directory_last,main_logger,"Prepos")
-
-main_logger.debug("Preprocessing had finnish")
-
-
-###Hard Exodus
-
-main_logger.debug("Hard Exodus had beging")
-
-test_hardExodus = hardExodusSegmentation(timestamp,loglevel,"Test",test_denoising[testList_lowerlimit:testList_highlimit])
-training_hardExodus = hardExodusSegmentation(timestamp,loglevel,"Training",training_denoising[trainingList_lowerlimit:trainingList_highlimit])
-
-directory_last = os.path.join(currentpath,'Results','HardExodus','Tests')
-save_images(test_hardExodus[testList_lowerlimit:testList_highlimit],test_names[testList_lowerlimit:testList_highlimit],"Testing",directory_last,main_logger,"HardExodus")
-
-directory_last = os.path.join(currentpath,'Results','HardExodus','Training')
-save_images(training_hardExodus[trainingList_lowerlimit:trainingList_highlimit],training_names[trainingList_lowerlimit:trainingList_highlimit],"Traininging",directory_last,main_logger,"HardExodus")
-
-Precisions = []
-Recalls = []
-Index = []
-
-for i in range(0,trainingList_highlimit):
-    img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
-    precision = precision_score_(img_resized,training_hardExodus[i])
-    recall = evaluation(training_hardExodus[i],img_resized)
-    Precisions.append(precision)
-    Recalls.append(recall)
-    Index.append("IDRiD_0{}".format(i+1))
-    print("IDRiD_0{}: Precision: {} | Recall: {}".format(i+1,precision,recall))
-
-main_logger.debug("Hard Exodus had ending")
-
-contours, _ = cv2.findContours(training_groundthruth_dataset[1],cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-cv2.drawContours(training_hardExodus[1],contours,-1,(125,0,0),4)
-
-
-
-cv2.imwrite("test.jpg",training_hardExodus[1])
+            print("HARD_EXODUSJ IDRiD{}: Real Exodus: {} Exodus Accepted: {} Percentaje: {:%}".format(i,len(countours),cnt,cnt/len(countours)))
+            
+        
+        """Precisions = []
+        Recalls = []
+        Index = []
+        for i in range(0,trainingList_highlimit):
+            img_resized = cv2.resize(training_groundthruth_dataset[i],None,fx=0.60,fy=0.60)
+            intersect = np.sum(img_resized*training_hardExodus[i])
+            total_pixel_truth = np.sum(img_resized)
+            Index.append("IDRiD_0{}".format(i+1))
+            print("IDRiD_0{}: True Positive: {} | total ground thruth: {} | percentaje: {}".format(i+1,intersect,total_pixel_truth,total_pixel_truth/intersect)) """
+    def feature_evaluation(self):
 
         
-main_logger.debug("The code run was sucessful")
-main_logger.debug("exit code 0")
+        return None
+
+
+flow = pipeline()
+
+flow.__init__()
+flow.preprocessing_featureExtraction()
 
 end_time = time.time()
-
-elapsed_time = end_time - start_time
-
+elapsed_time = end_time - flow.start_time
 elapsed_time = elapsed_time/60
-
 hours, rem = divmod(elapsed_time, 3600)
 minutes, seconds = divmod(rem, 60)
 print("Program ended the elapsed time is {:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))

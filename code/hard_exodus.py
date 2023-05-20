@@ -1,61 +1,66 @@
 import cv2
-from extendable_logger import projloggger
-from matplotlib import pyplot as plt
 from tqdm import tqdm
 import numpy as np
 
-def hardExodusSegmentation(timestamp,loglevel,dataname,data):
-    """Segmentatio of the Hard Exodus in Fundus eye images
-
-    Args:
-        timestr (str): Day and time to create the logs of the project
-        loglevel (int): Level of debuging for the logs
-        dataname (str): Name of the data for the logs
-        data (List): List of data to apply the preprocessing 
-
-    Returns:
-        img_array: Result of the segementation process
+class HardExodus():
+    """Class to create the Hard Exodus Segmentation
     """
-
-    result = []
-    result2 = []
     
-    data_length = len(data)
+    def __init__(self,
+                 dataname,
+                 data,
+                 mediandata
+                 ):
+        """Default initialization
+        Args:
+            dataname (string): Name of data to analyze
+            data (List): List of images
+            mediandata (List ): List of images
+        """
+        self.dataname = dataname
+        self.hardexodus = data
+        self.medianData = mediandata
+        self.result = []
+        self.result2 = []
+        self.kernel = np.ones((2,2),np.uint8) #cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,2))
+        self.zeros = np.zeros((2848,4288),dtype=np.uint8)
+        self.kernel2 = np.ones((3, 3), np.uint8)
+        self.data_length = len(data)
     
-    #log_fuction
-    hardexodus_logger = projloggger('hardexodus',timestamp,dataname,loglevel,'tmp25')
-    hardexodus_logger.debug("Begin of the hard_exodus.py code")
-    
-    kernel = np.ones((5,5),np.uint8)
-    strutElement = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(9,9))
-    strutElement2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(25,10))
-    
-    def hardExodus(img):
-        zeros = np.zeros((2848,4288),dtype=np.uint8)
+    def jackhardExodus(self,img):
+        _, thresh = cv2.threshold(img, 150, 255, cv2.THRESH_BINARY)
         kernel = np.ones((3, 3), np.uint8)
-        histogram=cv2.calcHist(img, [0], None, [256],(0,255), accumulate=False)
-        _, tresh = cv2.threshold(img,np.percentile(img,95),255,cv2.THRESH_BINARY)
-        Opening = cv2.morphologyEx(tresh,cv2.MORPH_OPEN,kernel,iterations=1)
-        Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,kernel,iterations=1)
+        opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel, iterations=2)
+        dist_transform = cv2.distanceTransform(closing, cv2.DIST_L2, 3)
+        _, sure_fg = cv2.threshold(dist_transform, 0.05*dist_transform.max(), 255, cv2.THRESH_BINARY)
         
-        contours, hierarchy  = cv2.findContours(Closing,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        largest_countour = sorted(contours,key=cv2.contourArea)
-        for cnt in range(0,len(largest_countour)):
-            cv2.drawContours(zeros,[largest_countour[cnt]],-1,(255,255,255),-1)
-            
+        return np.uint8(sure_fg)
+        
+    def hardExodus(self,img):
+        """First flow for obtaning the exodus
+
+        Args:
+            img (image): image with preprosesing
+
+        Returns:
+            binary_image: binarization of the exodus
+        """
+        _, tresh = cv2.threshold(img,np.percentile(img,90),255,cv2.THRESH_BINARY)
+        Opening = cv2.morphologyEx(tresh,cv2.MORPH_OPEN,self.kernel,iterations=1)
+        Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,self.kernel,iterations=1)   
         return Closing
     
-    
-    with tqdm(total=data_length,desc="Hard Exodus Extraction "+dataname) as pbar:
-        for i in range(0,data_length):
-            result.append(hardExodus(data[i]))
-            hardexodus_logger.info("Hard Exodus of "+str(i)+" of"+str(dataname))
-            pbar.update(1)
-    
+    def getHardExodus(self):
+        """Get all the exodus of the multy flow
 
-        
-    hardexodus_logger.debug("The code run was sucessful")
-    hardexodus_logger.debug("exit code 0")
+        Returns:
+            lists: lists with the multiple results
+        """
+        with tqdm(total=self.data_length,desc="Hard Exodus Extraction "+self.dataname) as pbar:
+            for i in range(0,self.data_length):
+                self.result.append(self.hardExodus(self.hardexodus[i]))
+                self.result2.append(self.jackhardExodus(self.medianData[i]))
+                pbar.update(1)
+        return self.result, self.result2
     
-    masks_data = result
-    return result
