@@ -1,13 +1,15 @@
 import cv2
 from tqdm import tqdm
 import os
+import numpy as np
 import pandas as pd
+from feature import feature 
 class proj_functions():
     
     def __init__(self):
         self.cfgfile_path = os.path.join(os.getcwd(),'main.cfg')
         self.subsubfolders = ['Tests','Training']
-        self.subfolders = ['HardExodus','HardExodusJacks','Prepos']
+        self.subfolders = ['HardExodus_92','HardExodus_97','Prepos']
         self.currentpath = os.getcwd()
     
     def get_localDirectories (self):
@@ -79,30 +81,61 @@ class proj_functions():
             result = true_positive/(true_positive+false_negative)
         return result
     
+    def calc_Sensitivity_Sets(self,truth, pred):
+        np.seterr(all="ignore")
+        truth = np.divide(truth,255)
+        #print(np.max(truth))
+        inv_pred = np.divide((255 - pred),255)
+        pred = np.divide(pred, 255)
+        TP = np.sum(pred*truth)
+        FP  = np.sum(inv_pred*truth)
+        sens = TP/(TP+FP)
+        return sens
+    
     def evaluate_exodus(self,exodus,groud_truth,original_image):
         count = 0 
         contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
         idx=0
-        exodus_features = pd.DataFrame()
-        exodus_labels = []
+        sensivities_out = []
+        negative_exodus = []
+        positive_exodus = []
+        
+        num_total_exodus = len(contours)
+        
+        
+        feature_extraction = feature(
+            [1,3,5],
+            [0, np.pi/4, np.pi/2 , 3*np.pi/4],
+            ['correlation', 'homogeneity', 'contrast', 'energy', 'dissimilarity'])
+        
+        count = 0
         
         for cnt in contours:
             idx += 1
             x,y,w,h = cv2.boundingRect(cnt)
             regions_exodus = exodus[y:y+h,x:x+w]
             regions_groundtruth = groud_truth[y:y+h,x:x+w]
+            
+            sensivities = self.calc_Sensitivity_Sets(regions_groundtruth,regions_exodus)
             area_evaluation = self.evaluation(regions_exodus,regions_groundtruth)
             
-            #exodus_features = exodus_features.append(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_RGB2GRAY))
-            
             if ( area_evaluation < 0.1):
-                exodus_labels.append(0)
-            
+                negative_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_BGR2GRAY)))
+                
+                
             if ( area_evaluation > 0.3):
-                exodus_labels.append(1)
+                positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_BGR2GRAY)))
+                sensivities_out.append(sensivities)
                 count = count + 1
                 
-        return count,len(contours)
+            
+            if ( len(sensivities_out) == 0 ):
+                sens = 0.0
+            else: 
+                sens = sum(sensivities_out)/len(sensivities_out)
+
+              
+        return negative_exodus, positive_exodus , sens , self.calc_Sensitivity_Sets(groud_truth,exodus), num_total_exodus, count
             
                 
             
