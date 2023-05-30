@@ -165,3 +165,7 @@ cython_debug/
 Results/
 logs/
 *.zip
+*.csv
+variable_save/
+*.txt
+Test_run/

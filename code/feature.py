@@ -1,21 +1,15 @@
 import numpy as np
 import pandas as pd
 from skimage.feature import graycomatrix, graycoprops
+from loguru import logger
 
 class feature():
-    def __init__(self,
-                 distances,
-                 angles,
-                 properties):
-        
-        self.distances = distances
-        self.angles = angles
-        self.properties = properties
-        
-        
+    def __init__(self):
+        self.distances = [1,3,5]
+        self.angles = [0, np.pi/4, np.pi/2 , 3*np.pi/4]
+        self.properties = ['correlation', 'homogeneity', 'contrast', 'energy', 'dissimilarity']
+            
     def calculate_glcms(self,matrix):
-        
-        
         # Calculate GLCM with specified distances and angles
         glcms = []
         for distance in self.distances:

@@ -2,15 +2,19 @@ import cv2
 from tqdm import tqdm
 import os
 import numpy as np
-import pandas as pd
-from feature import feature 
+from feature import feature
+from features_extra import feature_extractor
+from loguru import logger
 class proj_functions():
+
     
     def __init__(self):
+        
         self.cfgfile_path = os.path.join(os.getcwd(),'main.cfg')
         self.subsubfolders = ['Tests','Training']
         self.subfolders = ['HardExodus_92','HardExodus_97','Prepos']
         self.currentpath = os.getcwd()
+        logger.info(f"Class Initialized: {self.__class__}")
     
     def get_localDirectories (self):
         
@@ -18,12 +22,15 @@ class proj_functions():
             testFolderLocation = os.path.join('..','data','images','test/')
             trainingFolderLocation = os.path.join('..','data','images','training/')
             trainingGroundTruths = os.path.join('..','data','groundtruths','training','hard exudates/')
+            testGroundTruths = os.path.join('..','data','groundtruths','test','hard exudates/')
+
         else:
             with open(self.cfgfile_path, 'r') as file:
                 testFolderLocation = file.readline().rstrip()
                 trainingFolderLocation = file.readline().rstrip()
                 trainingGroundTruths = file.readline().rstrip()
-        return testFolderLocation,trainingFolderLocation,trainingGroundTruths
+                testGroundTruths = file.readline().rstrip()
+        return testFolderLocation,trainingFolderLocation,trainingGroundTruths,testGroundTruths
     
     def save_images(self,imageList,nameList,folderName,directory,process):
         numberofImages = len(imageList)
@@ -81,15 +88,12 @@ class proj_functions():
             result = true_positive/(true_positive+false_negative)
         return result
     
-    def calc_Sensitivity_Sets(self,truth, pred):
+    def calc_Sensitivity_Sets(self,truth,pred):
         np.seterr(all="ignore")
-        truth = np.divide(truth,255)
-        #print(np.max(truth))
-        inv_pred = np.divide((255 - pred),255)
-        pred = np.divide(pred, 255)
-        TP = np.sum(pred*truth)
-        FP  = np.sum(inv_pred*truth)
-        sens = TP/(TP+FP)
+        inv_pred = (255 - pred)
+        true_positive = np.sum(pred*truth)
+        false_positive  = np.sum(inv_pred*truth)
+        sens = true_positive/(true_positive+false_positive)
         return sens
     
     def evaluate_exodus(self,exodus,groud_truth,original_image):
@@ -99,43 +103,37 @@ class proj_functions():
         sensivities_out = []
         negative_exodus = []
         positive_exodus = []
-        
-        num_total_exodus = len(contours)
-        
-        
-        feature_extraction = feature(
-            [1,3,5],
-            [0, np.pi/4, np.pi/2 , 3*np.pi/4],
-            ['correlation', 'homogeneity', 'contrast', 'energy', 'dissimilarity'])
-        
+        y_output_negative = []
+        y_output_positive = []
+                
         count = 0
         
+        feature_extraction = feature_extractor()
+        
         for cnt in contours:
-            idx += 1
+            idx+=1
             x,y,w,h = cv2.boundingRect(cnt)
             regions_exodus = exodus[y:y+h,x:x+w]
             regions_groundtruth = groud_truth[y:y+h,x:x+w]
-            
-            sensivities = self.calc_Sensitivity_Sets(regions_groundtruth,regions_exodus)
-            area_evaluation = self.evaluation(regions_exodus,regions_groundtruth)
+            area_evaluation = self.calc_Sensitivity_Sets(regions_groundtruth,regions_exodus)
             
             if ( area_evaluation < 0.1):
-                negative_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_BGR2GRAY)))
-                
-                
-            if ( area_evaluation > 0.3):
-                positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h],cv2.COLOR_BGR2GRAY)))
-                sensivities_out.append(sensivities)
+                negative_exodus.append(feature_extraction.extract_features(original_image[y:y+h,x:x+h]))
+                y_output_negative.append([idx,0])
+                 
+            if ( area_evaluation > 0.4):
+                positive_exodus.append(feature_extraction.extract_features(original_image[y:y+h,x:x+h]))
+                sensivities_out.append(area_evaluation)
+                y_output_positive.append([idx,1])
                 count = count + 1
                 
-            
             if ( len(sensivities_out) == 0 ):
                 sens = 0.0
             else: 
                 sens = sum(sensivities_out)/len(sensivities_out)
 
               
-        return negative_exodus, positive_exodus , sens , self.calc_Sensitivity_Sets(groud_truth,exodus), num_total_exodus, count
+        return negative_exodus, positive_exodus ,sens,len(contours), count, y_output_negative, y_output_positive      
             
                 
             

@@ -1,6 +1,7 @@
 import cv2
 from tqdm import tqdm
 import numpy as np
+from loguru import logger
 
 class HardExodus():
     """Class to create the Hard Exodus Segmentation
@@ -14,23 +15,21 @@ class HardExodus():
         Args:
             dataname (string): Name of data to analyze
             data (List): List of images
-            mediandata (List ): List of images
         """
         self.dataname = dataname
         self.hardexodus = data
         self.result = []
         self.result2 = []
-        self.kernel = np.ones((2,2),np.uint8) #cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,2))
+        self.kernel = np.ones((2,2),np.uint8)
         self.data_length = len(data)
-        # 90 92 
-        # 95 97 
+        logger.info(f"Class Initialized: {self.__class__}")
+ 
         
     def hardExodus(self,img, threshold):
         """First flow for obtaning the exodus
-
         Args:
             img (image): image with preprosesing
-
+            threshold (int): integer for the threshold to binarization
         Returns:
             binary_image: binarization of the exodus
         """
@@ -41,7 +40,8 @@ class HardExodus():
     
     def getHardExodus(self,thresholdList):
         """Get all the exodus of the multy flow
-
+        Args:
+            thresholdList (list): two element list to get the exodus
         Returns:
             lists: lists with the multiple results
         """
@@ -49,7 +49,7 @@ class HardExodus():
             for i in range(0,self.data_length):
                 self.result.append(self.hardExodus(self.hardexodus[i],thresholdList[0]))
                 self.result2.append(self.hardExodus(self.hardexodus[i],thresholdList[1]))
-                
                 pbar.update(1)
+                
         return self.result, self.result2
     
