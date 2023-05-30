@@ -17,6 +17,8 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+
 
 class pipeline():
     def __init__(self):
@@ -313,7 +315,8 @@ class pipeline():
                 df.to_csv('pos_97.csv',mode='a', index=False, header=False)"""
                 
                 pbar.update(1)
-        #Extracting the data set 
+        #Extracting the data set
+        
         with tqdm(total=testList_length,desc="Feature extraction test data set") as pbar:
             for i in range(0,testList_length):
                 __, imageholder = cv2.threshold(test_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
@@ -368,6 +371,7 @@ class pipeline():
                 df.to_csv('x_92test.csv',mode='a', index=False, header=False)
                 
                 pbar.update(1)
+                
                 
         logger.info('Saving variables...')
         file = open("variable_save/get_exodus_out.pickle","wb")
@@ -445,12 +449,15 @@ class pipeline():
         X_test = scaler.transform(X_test)
         
         # Define the parameter grid for each classifier
-        param_grid_lr = {'C': [0.1, 1, 10], 'max_iter': [1000000]}
+        param_grid_lr = {'C': [0.01, 0.1, 1, 10, 100], 'max_iter': [1000000]}
         param_grid_rf = {'n_estimators': [50, 100, 200], 'random_state': [42]}
         param_grid_gb = {'n_estimators': [50, 100, 200], 'learning_rate': [0.1, 0.01], 'max_depth': [3, 5, 10]}
         param_grid_svm = {'gamma': [0.5],'C': [0.1, 1, 10], 'kernel': ['linear', 'rbf']}
         param_grid_nb = {'var_smoothing': [1e-9, 1e-8, 1e-7],}
         param_grid_knn = {'n_neighbors': [3,4,5,7],'weights': ['uniform', 'distance'],'algorithm': ['ball_tree', 'kd_tree']}
+        param_grid_dt = {'criterion': ['gini', 'entropy'], 'max_depth': [3, 5, 10], 'min_samples_split': [2, 5, 10]}
+
+
 
         # Create a list of classifiers to evaluate
         classifiers = [
@@ -460,10 +467,11 @@ class pipeline():
             {'name': 'SVM', 'model': SVC(probability=True), 'params': param_grid_svm},
             {'name': 'Naive Bayes','model': GaussianNB(), 'params': param_grid_nb},
             {'name': 'k-Nearest Neighbors','model': KNeighborsClassifier(), 'params': param_grid_knn},
+            {'name': 'Decision Tree', 'model': DecisionTreeClassifier(), 'params': param_grid_dt},
             ]
 
         # Create an instance of the evaluator
-        evaluator = BinaryClassifierEvaluator(classifiers)
+        evaluator = BinaryClassifierEvaluator(classifiers,X_test,Y_test)
 
         # Run evaluation on the dataset
         evaluator.evaluate(X_train, Y_train.values.ravel())
@@ -475,7 +483,9 @@ class pipeline():
         evaluator.print_best_classifier_info()
 
         # Plot ROC curve for the best classifier
-        evaluator.plot_roc_curve('97',X_test,Y_test.values.ravel())
+        #evaluator.plot_roc_curve('97',X_test,Y_test.values.ravel())
+        
+        evaluator.plot_roc_curve_training('97')
         
         #evaluator.plot_roc_curve_test_data('97',X_test)
 

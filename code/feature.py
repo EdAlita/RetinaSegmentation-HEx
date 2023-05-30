@@ -5,7 +5,7 @@ from loguru import logger
 
 class feature():
     def __init__(self):
-        self.distances = [1,3,5]
+        self.distances = [1,3]
         self.angles = [0, np.pi/4, np.pi/2 , 3*np.pi/4]
         self.properties = ['correlation', 'homogeneity', 'contrast', 'energy', 'dissimilarity']
             

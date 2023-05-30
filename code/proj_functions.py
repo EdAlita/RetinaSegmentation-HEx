@@ -108,24 +108,24 @@ class proj_functions():
                 
         count = 0
         
-        feature_extraction = feature_extractor()
+        feature_extraction = feature()
         
         for cnt in contours:
             idx+=1
             x,y,w,h = cv2.boundingRect(cnt)
             regions_exodus = exodus[y:y+h,x:x+w]
             regions_groundtruth = groud_truth[y:y+h,x:x+w]
-            area_evaluation = self.calc_Sensitivity_Sets(regions_groundtruth,regions_exodus)
+            #area_evaluation = self.calc_Sensitivity_Sets(regions_groundtruth,regions_exodus)
+            area_evaluation = self.evaluation(regions_groundtruth,regions_exodus)
             
-            if ( area_evaluation < 0.1):
-                negative_exodus.append(feature_extraction.extract_features(original_image[y:y+h,x:x+h]))
-                y_output_negative.append([idx,0])
-                 
-            if ( area_evaluation > 0.4):
-                positive_exodus.append(feature_extraction.extract_features(original_image[y:y+h,x:x+h]))
+            if ( area_evaluation > 0.5):
+                positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h], cv2.COLOR_RGB2GRAY)))
                 sensivities_out.append(area_evaluation)
-                y_output_positive.append([idx,1])
+                y_output_positive.append([idx,1,area_evaluation])
                 count = count + 1
+            elif ( area_evaluation > 0):
+                negative_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h], cv2.COLOR_RGB2GRAY)))
+                y_output_negative.append([idx,0,area_evaluation])
                 
             if ( len(sensivities_out) == 0 ):
                 sens = 0.0
