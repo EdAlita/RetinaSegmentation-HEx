@@ -241,7 +241,7 @@ class pipeline():
         arguments = self.parser.parse_args()
         #Setting the limits for the data
         testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments.highlimit,testList_length,trainingList_length)
-        ground92, exodus92, ground97, exodus97, training92_sensivities, training97_sensivities, test92_sensivities, test97_sensivities, y_output  = [], [], [], [], [], [] , [], [], []
+        ground92, exodus92, ground, exodus97, training92_sensivities, training97_sensivities, test92_sensivities, test97_sensivities, y_output  = [], [], [], [], [], [] , [], [], []
         
         #Extracting the features trainnig data set
         with tqdm(total=trainingList_highlimit,desc="Feature extraction training data set") as pbar:
@@ -251,68 +251,54 @@ class pipeline():
                 
                 neg_92, pos_92, training92_sensitivity, exodus_ground92, counted92, y_92n, y_92p= self.helpers.evaluate_exodus(training_hard92[i],
                                                                                                                  imageholder2,
-                                                                                                                 training_dataset[i])
+                                                                                                                 training_dataset[i],
+                                                                                                                 i)
                 neg_97, pos_97, training97_sensitivity, exodus_ground97, counted97, y_97n, y_97p = self.helpers.evaluate_exodus(training_hard97[i],
                                                                                                                  imageholder2,
-                                                                                                                 training_dataset[i])
+                                                                                                                 training_dataset[i],
+                                                                                                                 i)
                 
                 training92_sensivities.append(training92_sensitivity)
                 training97_sensivities.append(training97_sensitivity)
                 
-                ground92.append(exodus_ground92)
+                #ground.append(exodus_ground92)
                 exodus92.append(counted92)
                 
-                ground97.append(exodus_ground97)
+                ground.append(exodus_ground97)
                 exodus97.append(counted97)
                 
-                df = pd.DataFrame(y_97n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_97train.csv',mode='a', index=False, header=False)
                 
-                df = pd.DataFrame(neg_97)
+                df = pd.DataFrame(neg_92)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_97train.csv',mode='a', index=False, header=False)
-                
-                df = pd.DataFrame(y_97p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_97train.csv',mode='a', index=False, header=False)
-            
-                df = pd.DataFrame(pos_97)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_97train.csv',mode='a', index=False, header=False)
+                df.to_csv('neg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 df = pd.DataFrame(y_92n)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_92train.csv',mode='a', index=False, header=False)
-                
-                df = pd.DataFrame(neg_92)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_92train.csv',mode='a', index=False, header=False)
-                
-                df = pd.DataFrame(y_92p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_92train.csv',mode='a', index=False, header=False)
-            
-                df = pd.DataFrame(pos_92)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_92train.csv',mode='a', index=False, header=False)
-                
-                """
-                df = pd.DataFrame(neg_92)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('neg_92.csv',mode='a', index=False, header=False)
+                df.to_csv('Yneg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 df = pd.DataFrame(neg_97)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('neg_97.csv',mode='a', index=False, header=False)
+                df.to_csv('neg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_97n)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Yneg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 df = pd.DataFrame(pos_92)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('pos_92.csv',mode='a', index=False, header=False)
+                df.to_csv('pos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_92p)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Ypos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 df = pd.DataFrame(pos_97)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('pos_97.csv',mode='a', index=False, header=False)"""
+                df.to_csv('pos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_97p)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Ypos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 pbar.update(1)
         #Extracting the data set
@@ -322,56 +308,58 @@ class pipeline():
                 __, imageholder = cv2.threshold(test_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
                 imageholder = cv2.resize(imageholder,None,fx=0.40,fy=0.40)       
                 
-                neg_92, pos_92, test92_sensitivity, exodus_ground92, counted92, y_92p, y_92n= self.helpers.evaluate_exodus(test_hard92[i],
+                neg_92, pos_92, test92_sensitivity, exodus_ground92, counted92, y_92n, y_92p= self.helpers.evaluate_exodus(test_hard92[i],
                                                                                                              imageholder,
-                                                                                                             test_dataset[i])
-                neg_97, pos_97, test97_sensitivity, exodus_ground97, counted97, y_97p, y_97n= self.helpers.evaluate_exodus(test_hard97[i],
+                                                                                                             test_dataset[i],
+                                                                                                             55+i)
+                neg_97, pos_97, test97_sensitivity, exodus_ground97, counted97, y_97n, y_97p= self.helpers.evaluate_exodus(test_hard97[i],
                                                                                                              imageholder,
-                                                                                                             test_dataset[i])
+                                                                                                             test_dataset[i],
+                                                                                                             55+i)
                 
                 test92_sensivities.append(test92_sensitivity)
                 test97_sensivities.append(test97_sensitivity)
                 
-                ground92.append(exodus_ground92)
+                #ground.append(exodus_ground92)
                 exodus92.append(counted92)
                 
-                ground97.append(exodus_ground97)
+                ground.append(exodus_ground97)
                 exodus97.append(counted97)
-                
-                df = pd.DataFrame(y_97n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_97test.csv',mode='a', index=False, header=False)
-                
-                df = pd.DataFrame(neg_97)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_97test.csv',mode='a', index=False, header=False)
-                
-                df = pd.DataFrame(y_97p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_97test.csv',mode='a', index=False, header=False)
-            
-                df = pd.DataFrame(pos_97)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_97test.csv',mode='a', index=False, header=False)
-                
-                df = pd.DataFrame(y_92n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_92test.csv',mode='a', index=False, header=False)
                 
                 df = pd.DataFrame(neg_92)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_92test.csv',mode='a', index=False, header=False)
+                df.to_csv('neg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_92n)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Yneg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(neg_97)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('neg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_97n)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Yneg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(pos_92)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('pos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 df = pd.DataFrame(y_92p)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('y_92test.csv',mode='a', index=False, header=False)
-            
-                df = pd.DataFrame(pos_92)
+                df.to_csv('Ypos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(pos_97)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('x_92test.csv',mode='a', index=False, header=False)
+                df.to_csv('pos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_97p)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Ypos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 pbar.update(1)
-                
+        
                 
         logger.info('Saving variables...')
         file = open("variable_save/get_exodus_out.pickle","wb")
@@ -382,7 +370,8 @@ class pipeline():
         pickle.dump(exodus92,file)
         pickle.dump(exodus97,file)
         pickle.dump(ground92,file)
-        pickle.dump(ground97,file)
+        pickle.dump(ground,file)
+        print(sum(ground))
         file.close()            
             
                 
@@ -426,22 +415,20 @@ class pipeline():
         pos_92 = scaler.fit_transform(pos_92)
         pos_97 = scaler.fit_transform(pos_97)
         
-        np.savetxt("neg_92.csv",neg_92,delimiter=',')
-        np.savetxt("neg_97.csv",neg_97,delimiter=',')
+        np.savetxt("neg_92.csv",neg_92,fmt="%f",delimiter=',')
+        np.savetxt("neg_97.csv",neg_97,fmt="%f",delimiter=',')
         
-        np.savetxt("pos_92.csv",pos_92,delimiter=',')
-        np.savetxt("pos_97.csv",pos_97,delimiter=',')
+        np.savetxt("pos_92.csv",pos_92,fmt="%f",delimiter=',')
+        np.savetxt("pos_97.csv",pos_97,fmt="%f",delimiter=',')
         
     def ML(self):
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
         X_train = pd.read_csv('x_97train.csv',header=None)
-        Y_train = pd.read_csv('y_97train.csv',header=None,usecols=[1])
+        Y_train = pd.read_csv('y_97train.csv',header=None,usecols=[2])
+        print(Y_train)
         X_test = pd.read_csv('x_97test.csv',header=None)
-        Y_test = pd.read_csv('y_97test.csv',header=None,usecols=[1])
-        
-        X_train = X_train.fillna(0)
-        X_test = X_test.fillna(0)
+        Y_test = pd.read_csv('y_97test.csv',header=None,usecols=[2])
         
         scaler =MinMaxScaler().fit(X_train)
         
@@ -494,12 +481,11 @@ start_time = time.time()
 
         
 flow = pipeline()
-
 #flow.preprocessing()
 #flow.hard_exodus_extraction_treshHold()
-#flow.get_Features()
-#flow.normalize_data()
-flow.ML()
+flow.get_Features()
+flow.normalize_data()
+#flow.ML()
 
 end_time = time.time()
 elapsed_time = end_time - start_time

@@ -40,6 +40,20 @@ class BinaryClassifierEvaluator:
         self.results = pd.DataFrame(results)
         self.best_classifier = self.results.loc[self.results['AUPR'].idxmax()]
         
+        y = self.best_classifier['Best Estimator'].predict(self.X_test)
+        proba = self.best_classifier['Best Estimator'].predict_proba(self.X_test)
+        
+        print(proba)
+        
+        predictions = {
+            'Predictions': y,
+            'Probabilities': proba
+        }
+        
+        result = pd.DataFrame(predictions)
+        
+        result.to_csv('ML_results.csv')
+        
         logger.info('Saving best Classifiier...')
         file = open("variable_save/best_classifier97.pickle","wb")
         pickle.dump(self.best_classifier,file)

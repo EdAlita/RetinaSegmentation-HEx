@@ -89,16 +89,19 @@ class proj_functions():
         return result
     
     def calc_Sensitivity_Sets(self,truth,pred):
-        np.seterr(all="ignore")
-        inv_pred = (255 - pred)
-        true_positive = np.sum(pred*truth)
-        false_positive  = np.sum(inv_pred*truth)
-        sens = true_positive/(true_positive+false_positive)
+        true_positive = np.sum(truth)
+        total_groundthruth  = np.sum(truth)
+        sens = true_positive/total_groundthruth
+        #print('sens {} true_positives {} total {}'.format(sens,true_positive,total_groundthruth))
         return sens
     
-    def evaluate_exodus(self,exodus,groud_truth,original_image):
+    
+    def evaluate_exodus(self,exodus,groud_truth,original_image,num):
+        
         count = 0 
         contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+        ground, _ = cv2.findContours(groud_truth,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+
         idx=0
         sensivities_out = []
         negative_exodus = []
@@ -110,30 +113,50 @@ class proj_functions():
         
         feature_extraction = feature()
         
+        
         for cnt in contours:
             idx+=1
-            x,y,w,h = cv2.boundingRect(cnt)
-            regions_exodus = exodus[y:y+h,x:x+w]
-            regions_groundtruth = groud_truth[y:y+h,x:x+w]
-            #area_evaluation = self.calc_Sensitivity_Sets(regions_groundtruth,regions_exodus)
-            area_evaluation = self.evaluation(regions_groundtruth,regions_exodus)
+            img = np.zeros_like(exodus)
+            exodus = cv2.drawContours(img, [cnt], 0, (255,255,255), -1)
+            #regions_intersection = cv2.bitwise_and(exodus,groud_truth)
             
-            if ( area_evaluation > 0.5):
-                positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h], cv2.COLOR_RGB2GRAY)))
+            #area_evaluation = self.calc_Sensitivity_Sets(regions_intersection,regions_union)
+            x,y,w,h = cv2.boundingRect(cnt)
+            for grnd in ground:
+                im2 = np.zeros_like(exodus)
+                groundTh = cv2.drawContours(im2, [grnd], 0, (255,255,255), -1)
+                if idx == 2:
+                    cv2.imwrite('ground.jpg',groundTh)
+                regions_intersection = cv2.bitwise_and(exodus,groundTh)
+                intersection = np.sum(regions_intersection)
+                if(intersection!=0):
+                    regions_union = cv2.bitwise_or(exodus,groundTh)
+                    break
+                else:
+                    regions_union = cv2.bitwise_or(exodus,groundTh)
+            
+            area_evaluation = np.sum(regions_intersection)/np.sum(regions_union)
+                   
+            
+            if ( area_evaluation >= 0.2):
+                positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
                 sensivities_out.append(area_evaluation)
-                y_output_positive.append([idx,1,area_evaluation])
+                y_output_positive.append([num,idx,1,area_evaluation])
                 count = count + 1
-            elif ( area_evaluation > 0):
-                negative_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+h], cv2.COLOR_RGB2GRAY)))
-                y_output_negative.append([idx,0,area_evaluation])
+            else:
+                negative_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
+                y_output_negative.append([num,idx,0,area_evaluation])
+                
                 
             if ( len(sensivities_out) == 0 ):
                 sens = 0.0
             else: 
                 sens = sum(sensivities_out)/len(sensivities_out)
-
+            
+            sens = 0
+            groundThruth =0
               
-        return negative_exodus, positive_exodus ,sens,len(contours), count, y_output_negative, y_output_positive      
+        return negative_exodus, positive_exodus ,sens,groundThruth, count, y_output_negative, y_output_positive      
             
                 
             
