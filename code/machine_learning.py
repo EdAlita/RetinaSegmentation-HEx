@@ -16,12 +16,12 @@ class BinaryClassifierEvaluator:
         self.classifiers = classifiers
         self.results = None
         self.best_classifier = None
-        self.X_test = X
-        self.y_test = Y
+        self.X_train = X
+        self.y_train = Y
         logger.info(self.__dict__)
         
     
-    def evaluate(self, X_train, y_train, test_size=0.2, random_state=123):
+    def evaluate(self,test_size=0.2, random_state=123):
         # Split the dataset into train and test sets
         #X_train, self.X_test, y_train, self.y_test = train_test_split(X_train, y_train, test_size=test_size, random_state=random_state)
         
@@ -29,10 +29,10 @@ class BinaryClassifierEvaluator:
         results = []
         for classifier in self.classifiers:
             gs = GridSearchCV(classifier['model'], classifier['params'], scoring='average_precision', cv=RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42),verbose=10,n_jobs=-1)
-            gs.fit(X_train, y_train)
+            gs.fit(self.X_train, self.y_train)
             best_estimator = gs.best_estimator_
-            y_pred = best_estimator.predict_proba(self.X_test)[:, 1]
-            precision, recall, _ = precision_recall_curve(self.y_test, y_pred)
+            y_pred = best_estimator.predict_proba(self.X_train)[:, 1]
+            precision, recall, _ = precision_recall_curve(self.y_train, y_pred)
             auc_score = auc(recall, precision)
             results.append({'Classifier': classifier['name'], 'Best Estimator': best_estimator, 'AUPR': auc_score})
             
@@ -40,19 +40,17 @@ class BinaryClassifierEvaluator:
         self.results = pd.DataFrame(results)
         self.best_classifier = self.results.loc[self.results['AUPR'].idxmax()]
         
-        y = self.best_classifier['Best Estimator'].predict(self.X_test)
-        proba = self.best_classifier['Best Estimator'].predict_proba(self.X_test)
-        
-        print(proba)
-        
-        predictions = {
-            'Predictions': y,
-            'Probabilities': proba
-        }
-        
-        result = pd.DataFrame(predictions)
-        
-        result.to_csv('ML_results.csv')
+        # Split the probabilities into negatives and positives
+        negative_probabilities = self.best_classifier['Best Estimator'].predict_proba(self.X_train[self.y_train == 0])
+        positive_probabilities = self.best_classifier['Best Estimator'].predict_proba(self.X_train[self.y_train == 1])
+
+        positive_probabilities_df = pd.DataFrame(positive_probabilities)
+        negative_probabilities_df = pd.DataFrame(negative_probabilities)
+
+        # Save the DataFrame to a CSV file
+        negative_probabilities_df.to_csv('negative_probabilities.csv', index=False)
+        positive_probabilities_df.to_csv('positive_probabilities.csv', index=False)
+
         
         logger.info('Saving best Classifiier...')
         file = open("variable_save/best_classifier97.pickle","wb")
@@ -83,8 +81,8 @@ class BinaryClassifierEvaluator:
         for index, row in self.results.iterrows():
             name = row['Classifier']
             classifier = row['Best Estimator']
-            y_pred_proba = classifier.predict_proba(self.X_test)[:, 1]
-            precision, recall, _ = precision_recall_curve(self.y_test, y_pred_proba)
+            y_pred_proba = classifier.predict_proba(self.X_train)[:, 1]
+            precision, recall, _ = precision_recall_curve(self.y_train, y_pred_proba)
             roc_auc = auc(recall, precision)
             plt.plot(recall, precision, label='{} (AUPR = {:.2f})'.format(name, roc_auc))
 

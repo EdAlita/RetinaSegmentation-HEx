@@ -424,16 +424,21 @@ class pipeline():
     def ML(self):
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
-        X_train = pd.read_csv('x_97train.csv',header=None)
-        Y_train = pd.read_csv('y_97train.csv',header=None,usecols=[2])
-        print(Y_train)
-        X_test = pd.read_csv('x_97test.csv',header=None)
-        Y_test = pd.read_csv('y_97test.csv',header=None,usecols=[2])
+        negative_data = pd.read_csv('neg_92.csv',header=None)
+        positive_data = pd.read_csv('pos_92.csv',header=None)
         
-        scaler =MinMaxScaler().fit(X_train)
+        negative_data = negative_data.reset_index(drop=True)
+        positive_data = positive_data.reset_index(drop=True)
+        print("Columns of X_train:")
+        print(negative_data.columns)
+
+        print("\nColumns of X_test:")
+        print(positive_data.columns)
         
-        X_train = scaler.transform(X_train)
-        X_test = scaler.transform(X_test)
+        # Combine negative and positive data into X_train and y_train
+        X_train = pd.concat([negative_data, positive_data],axis=0)
+        y_train = pd.concat([pd.Series(np.zeros(len(negative_data))), pd.Series(np.ones(len(positive_data)))], axis=0)
+        
         
         # Define the parameter grid for each classifier
         param_grid_lr = {'C': [0.01, 0.1, 1, 10, 100], 'max_iter': [1000000]}
@@ -458,13 +463,13 @@ class pipeline():
             ]
 
         # Create an instance of the evaluator
-        evaluator = BinaryClassifierEvaluator(classifiers,X_test,Y_test)
+        evaluator = BinaryClassifierEvaluator(classifiers,X_train,y_train)
 
         # Run evaluation on the dataset
-        evaluator.evaluate(X_train, Y_train.values.ravel())
+        evaluator.evaluate()
 
         # Print the results
-        print(evaluator.results)
+        #print(evaluator.results)
         
         # Print information about the best classifier
         evaluator.print_best_classifier_info()
@@ -483,9 +488,9 @@ start_time = time.time()
 flow = pipeline()
 #flow.preprocessing()
 #flow.hard_exodus_extraction_treshHold()
-flow.get_Features()
-flow.normalize_data()
-#flow.ML()
+#flow.get_Features()
+#flow.normalize_data()
+flow.ML()
 
 end_time = time.time()
 elapsed_time = end_time - start_time

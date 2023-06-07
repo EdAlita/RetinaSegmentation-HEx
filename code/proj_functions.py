@@ -138,7 +138,7 @@ class proj_functions():
             area_evaluation = np.sum(regions_intersection)/np.sum(regions_union)
                    
             
-            if ( area_evaluation >= 0.2):
+            if ( area_evaluation >= 0.3):
                 positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
                 sensivities_out.append(area_evaluation)
                 y_output_positive.append([num,idx,1,area_evaluation])
