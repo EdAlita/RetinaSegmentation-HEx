@@ -1,6 +1,7 @@
 import cv2
-from tqdm import tqdm
+from alive_progress import alive_bar
 from loguru import logger
+import time
 
 class preprocessing():
     """Manipulate images for Exodus Segmentation
@@ -44,20 +45,22 @@ class preprocessing():
             list: of aimages applied the Clahe and Denosing
         """
         
-        with tqdm(total=self.data_length,desc="Clahe "+self.dataname) as statusbar:
-                for i in range(0,self.data_length):
+        with alive_bar(total=self.data_length,title="Clahe "+self.dataname) as statusbar:
+            for i in range(0,self.data_length):
                     
-                    self.clahe_result.append(
-                        self.green_ch_splitting_and_clahe(self.data[i])
-                    )
-                    statusbar.update(1)
+                self.clahe_result.append(
+                    self.green_ch_splitting_and_clahe(self.data[i])
+                )
+                time.sleep(0.01)
+                statusbar()
                     
-        with tqdm(total=self.data_length,desc="Denosing Image "+self.dataname) as statusbar:
-                for i in range(0,self.data_length): 
+        with alive_bar(total=self.data_length,title="Denosing Image "+self.dataname) as statusbar:
+            for i in range(0,self.data_length): 
                     
-                    self.denoising_result.append(
-                        cv2.fastNlMeansDenoising(self.clahe_result[i],15, 7, 21 )
-                    )
-                    statusbar.update(1)
+                self.denoising_result.append(
+                    cv2.fastNlMeansDenoising(self.clahe_result[i],15, 7, 21 )
+                )
+                time.sleep(0.01)
+                statusbar()
                     
         return self.denoising_result

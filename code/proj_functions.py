@@ -1,5 +1,6 @@
 import cv2
-from tqdm import tqdm
+from alive_progress import alive_bar
+import time
 import os
 import numpy as np
 from feature import feature
@@ -34,10 +35,11 @@ class proj_functions():
     
     def save_images(self,imageList,nameList,folderName,directory,process):
         numberofImages = len(imageList)
-        with tqdm(total=numberofImages,desc="Saving Images "+folderName+" of "+process) as statusbar:
+        with alive_bar(total=numberofImages,title="Saving Images "+folderName+" of "+process) as statusbar:
             for i in range(0,numberofImages):
                 cv2.imwrite(os.path.join(directory,nameList[i]),imageList[i])
-                statusbar.update(1)
+                time.sleep(0.01)
+                statusbar()
     
     def settingLimits(self,argumentsLimit,firstdefaultvalue,seconddefaultvalue):
         if(argumentsLimit==100):
@@ -101,20 +103,23 @@ class proj_functions():
         count = 0 
         contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
         ground, _ = cv2.findContours(groud_truth,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-
+        
         idx=0
+
         sensivities_out = []
         negative_exodus = []
         positive_exodus = []
         y_output_negative = []
         y_output_positive = []
-                
+        groundThruth = 0         
         count = 0
         
         feature_extraction = feature()
-        
+        groundThruth += len(ground)
+
         
         for cnt in contours:
+
             idx+=1
             img = np.zeros_like(exodus)
             exodus = cv2.drawContours(img, [cnt], 0, (255,255,255), -1)
@@ -138,7 +143,7 @@ class proj_functions():
             area_evaluation = np.sum(regions_intersection)/np.sum(regions_union)
                    
             
-            if ( area_evaluation >= 0.3):
+            if ( area_evaluation >= 0.1):
                 positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
                 sensivities_out.append(area_evaluation)
                 y_output_positive.append([num,idx,1,area_evaluation])
@@ -154,7 +159,6 @@ class proj_functions():
                 sens = sum(sensivities_out)/len(sensivities_out)
             
             sens = 0
-            groundThruth =0
               
         return negative_exodus, positive_exodus ,sens,groundThruth, count, y_output_negative, y_output_positive      
             

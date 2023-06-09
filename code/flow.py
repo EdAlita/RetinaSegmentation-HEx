@@ -8,6 +8,7 @@ from machine_learning import BinaryClassifierEvaluator
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from alive_progress import alive_bar
 import pickle
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import warnings 
@@ -38,7 +39,8 @@ class pipeline():
         #Empty list to save the data
         training_dataset, test_dataset, training_groundthruth_dataset, test_groundthruth_dataset = [], [], [], []
         #Geting all the the args
-        arguments = self.parser.parse_args()
+        #arguments = self.parser.parse_args()
+        arguments = 100
         self.helpers.file_structure()
         
         #Open file to obtain local path to the data field
@@ -61,8 +63,8 @@ class pipeline():
         trainingList_length = 54
         
         #Setting the limits for the data
-        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(arguments.lowerlimit,0,0)
-        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments.highlimit,testList_length,trainingList_length)
+        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(arguments,0,0)
+        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments,testList_length,trainingList_length)
         
         #Reading all the images and append it to the empty list
         for i in range(0,testList_length):
@@ -238,9 +240,9 @@ class pipeline():
             logger.error("Run the Preposeccing step first")
             
         ##Geting all the the args
-        arguments = self.parser.parse_args()
+        arguments = 100
         #Setting the limits for the data
-        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments.highlimit,testList_length,trainingList_length)
+        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments,testList_length,trainingList_length)
         ground92, exodus92, ground, exodus97, training92_sensivities, training97_sensivities, test92_sensivities, test97_sensivities, y_output  = [], [], [], [], [], [] , [], [], []
         
         #Extracting the features trainnig data set
@@ -421,11 +423,13 @@ class pipeline():
         np.savetxt("pos_92.csv",pos_92,fmt="%f",delimiter=',')
         np.savetxt("pos_97.csv",pos_97,fmt="%f",delimiter=',')
         
-    def ML(self):
+    def ML(self,
+           dataset):
+        logger.info('Creating the Machine Learning for {}'.format(dataset))
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
-        negative_data = pd.read_csv('neg_92.csv',header=None)
-        positive_data = pd.read_csv('pos_92.csv',header=None)
+        negative_data = pd.read_csv('neg_{}.csv'.format(dataset),header=None)
+        positive_data = pd.read_csv('pos_{}.csv'.format(dataset),header=None)
         
         negative_data = negative_data.reset_index(drop=True)
         positive_data = positive_data.reset_index(drop=True)
@@ -466,7 +470,7 @@ class pipeline():
         evaluator = BinaryClassifierEvaluator(classifiers,X_train,y_train)
 
         # Run evaluation on the dataset
-        evaluator.evaluate()
+        evaluator.evaluate(dataset)
 
         # Print the results
         #print(evaluator.results)
@@ -477,26 +481,9 @@ class pipeline():
         # Plot ROC curve for the best classifier
         #evaluator.plot_roc_curve('97',X_test,Y_test.values.ravel())
         
-        evaluator.plot_roc_curve_training('97')
+        evaluator.plot_roc_curve_training(dataset)
         
         #evaluator.plot_roc_curve_test_data('97',X_test)
 
 
-start_time = time.time()
-
-        
-flow = pipeline()
-#flow.preprocessing()
-#flow.hard_exodus_extraction_treshHold()
-#flow.get_Features()
-#flow.normalize_data()
-flow.ML()
-
-end_time = time.time()
-elapsed_time = end_time - start_time
-elapsed_time = elapsed_time/60
-hours, rem = divmod(elapsed_time, 3600)
-minutes, seconds = divmod(rem, 60)
-
-logger.info("Program ended the elapsed time is {:0>2}:{:0>2}:{:02}".format(int(hours),int(minutes),int(seconds)))
 

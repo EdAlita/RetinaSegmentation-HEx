@@ -21,7 +21,7 @@ class BinaryClassifierEvaluator:
         logger.info(self.__dict__)
         
     
-    def evaluate(self,test_size=0.2, random_state=123):
+    def evaluate(self,dataset,test_size=0.2, random_state=123):
         # Split the dataset into train and test sets
         #X_train, self.X_test, y_train, self.y_test = train_test_split(X_train, y_train, test_size=test_size, random_state=random_state)
         
@@ -48,8 +48,8 @@ class BinaryClassifierEvaluator:
         negative_probabilities_df = pd.DataFrame(negative_probabilities)
 
         # Save the DataFrame to a CSV file
-        negative_probabilities_df.to_csv('negative_probabilities.csv', index=False)
-        positive_probabilities_df.to_csv('positive_probabilities.csv', index=False)
+        negative_probabilities_df.to_csv('negative_probabilities{}.csv'.format(dataset), index=False)
+        positive_probabilities_df.to_csv('positive_probabilities{}.csv'.format(dataset), index=False)
 
         
         logger.info('Saving best Classifiier...')
@@ -89,8 +89,8 @@ class BinaryClassifierEvaluator:
         plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
+        plt.xlabel('Recall')
+        plt.ylabel('Precissions')
         plt.title('data_set_{}'.format(dataname))
         plt.legend(loc="lower right")
         plt.savefig('data_set_{}.png'.format(dataname))
