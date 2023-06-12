@@ -25,7 +25,7 @@ class HardExodus():
         logger.info(f"Class Initialized: {self.__class__}")
  
         
-    def hardExodus(self,img, threshold):
+    def hardExodus(self,img, threshold, kernel):
         """First flow for obtaning the exodus
         Args:
             img (image): image with preprosesing
@@ -34,8 +34,9 @@ class HardExodus():
             binary_image: binarization of the exodus
         """
         _, tresh = cv2.threshold(img,np.percentile(img,threshold),255,cv2.THRESH_BINARY)
-        Opening = cv2.morphologyEx(tresh,cv2.MORPH_OPEN,self.kernel,iterations=1)
-        Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,self.kernel,iterations=1)   
+        Dilate = cv2.dilate(tresh, kernel, iterations=1)
+        Opening = cv2.morphologyEx(Dilate,cv2.MORPH_OPEN,kernel,iterations=1)
+        Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,kernel,iterations=1)   
         return Closing
     
     def getHardExodus(self,thresholdList):
@@ -47,8 +48,8 @@ class HardExodus():
         """
         with tqdm(total=self.data_length,desc="Hard Exodus Extraction "+self.dataname) as pbar:
             for i in range(0,self.data_length):
-                self.result.append(self.hardExodus(self.hardexodus[i],thresholdList[0]))
-                self.result2.append(self.hardExodus(self.hardexodus[i],thresholdList[1]))
+                self.result.append(self.hardExodus(self.hardexodus[i],thresholdList[0],cv2.getStructuringElement(cv2.MORPH_RECT,(2,2))))
+                self.result2.append(self.hardExodus(self.hardexodus[i],thresholdList[1],cv2.getStructuringElement(cv2.MORPH_RECT,(2,2))))
                 pbar.update(1)
                 
         return self.result, self.result2

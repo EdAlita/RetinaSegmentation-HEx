@@ -155,10 +155,10 @@ class pipeline():
             logger.error("Run the Preposeccing step first")
         
         ##Geting all the the args
-        arguments = self.parser.parse_args()
+        arguments = 100
         #setting the limits of the dataset
-        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(arguments.lowerlimit,0,0)
-        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments.highlimit,testList_length,trainingList_length)
+        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(arguments,0,0)
+        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments,testList_length,trainingList_length)
         
         ###Hard Exodus
         test_Exodus = HardExodus(
@@ -172,8 +172,8 @@ class pipeline():
             )
         
         
-        test_hard92,test_hard97 = test_Exodus.getHardExodus([92,97])
-        training_hard92,training_hard97 = training_Exodus.getHardExodus([92,97])
+        test_hard92,test_hard97 = test_Exodus.getHardExodus([90,97])
+        training_hard92,training_hard97 = training_Exodus.getHardExodus([90,97])
         
         
         #Saving the images of the results
