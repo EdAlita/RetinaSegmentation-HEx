@@ -28,17 +28,17 @@ class BinaryClassifierEvaluator:
         # Perform grid search for each classifier and store results
         results = []
         for classifier in self.classifiers:
-            gs = GridSearchCV(classifier['model'], classifier['params'], scoring='average_precision', cv=RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42),verbose=10,n_jobs=-1)
+            gs = GridSearchCV(classifier['model'], classifier['params'], scoring='accuracy', cv=RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42),verbose=3,n_jobs=-1)
             gs.fit(self.X_train, self.y_train)
             best_estimator = gs.best_estimator_
             y_pred = best_estimator.predict_proba(self.X_train)[:, 1]
             precision, recall, _ = precision_recall_curve(self.y_train, y_pred)
             auc_score = auc(recall, precision)
-            results.append({'Classifier': classifier['name'], 'Best Estimator': best_estimator, 'AUPR': auc_score})
+            results.append({'Classifier': classifier['name'], 'Best Estimator': best_estimator, 'AUC': auc_score})
             
         # Store results and best classifier
         self.results = pd.DataFrame(results)
-        self.best_classifier = self.results.loc[self.results['AUPR'].idxmax()]
+        self.best_classifier = self.results.loc[self.results['AUC'].idxmax()]
         
         # Split the probabilities into negatives and positives
         negative_probabilities = self.best_classifier['Best Estimator'].predict_proba(self.X_train[self.y_train == 0])
@@ -93,6 +93,6 @@ class BinaryClassifierEvaluator:
         plt.ylabel('Precissions')
         plt.title('data_set_{}'.format(dataname))
         plt.legend(loc="lower right")
-        plt.savefig('data_set_{}.png'.format(dataname))
+        plt.savefig('Results/data_set_{}.png'.format(dataname))
             
     

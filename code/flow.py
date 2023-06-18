@@ -25,9 +25,9 @@ class pipeline():
     def __init__(self):
         """Init for the pipeline of the code
         """
-        self.parser = argparse.ArgumentParser("Project to detected Hard Exodus")
-        self.parser.add_argument("-ll","--lowerlimit", default=100,help='Gives the lower limit to cut the data. Default value is the entire array of Data')
-        self.parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limit to cut the data. Default value is the entire array of Data')
+        #self.parser = argparse.ArgumentParser("Project to detected Hard Exodus")
+        #self.parser.add_argument("-ll","--lowerlimit", default=100,help='Gives the lower limit to cut the data. Default value is the entire array of Data')
+        #self.parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limit to cut the data. Default value is the entire array of Data')
         self.currentpath = os.getcwd()
         self.helpers = proj_functions()
         
@@ -85,7 +85,7 @@ class pipeline():
         
         #Get all the preprocesing of the data
         test_prepos = preprocessing(
-            "Tests",
+            "Test",
             test_dataset[testList_lowerlimit:testList_highlimit]
             )
         training_prepos = preprocessing(
@@ -99,14 +99,14 @@ class pipeline():
         self.helpers.save_images(
             test_denoising[testList_lowerlimit:testList_highlimit],
             test_names[testList_lowerlimit:testList_highlimit],
-            "Tests",
-            os.path.join(self.currentpath,'Results','Prepos','Tests'),
+            "Test",
+            os.path.join(self.currentpath,'Results','Prepos','Test'),
             "Prepos")
         self.helpers.save_images(
             training_denoising[trainingList_lowerlimit:trainingList_highlimit],
             training_names[trainingList_lowerlimit:trainingList_highlimit],
-            "Training",
-            os.path.join(self.currentpath,'Results','Prepos','Training'),
+            "Train",
+            os.path.join(self.currentpath,'Results','Prepos','Train'),
             "Prepos")
         
         #Saving a pickle of the variables
@@ -127,6 +127,8 @@ class pipeline():
         pickle.dump(test_denoising, file)
         pickle.dump(training_denoising, file)
         file.close()
+        
+        logger.success('Exit without errors')
 
         
         
@@ -141,7 +143,7 @@ class pipeline():
                     trainingList_length = pickle.load(file)
                     training_names = pickle.load(file)
                     test_names = pickle.load(file)
-                    logger.info("Pickle file loaded successfully")
+                    logger.success("Pickle file loaded successfully")
                     file.close()
                 except EOFError:
                     logger.error("The pickle file is empty.")
@@ -172,19 +174,19 @@ class pipeline():
             )
         
         
-        test_hard92,test_hard97 = test_Exodus.getHardExodus([90,97])
-        training_hard92,training_hard97 = training_Exodus.getHardExodus([90,97])
+        test_hard85,test_hard90, test_hard95  = test_Exodus.getHardExodus([95,90,95])
+        training_hard85,training_hard90, training_hard95 = training_Exodus.getHardExodus([95,90,95])
         
         
         #Saving the images of the results
-        _Results = [test_hard92,test_hard97,training_hard92,training_hard97]
-        _Folder = ['Tests','Tests','Training','Training']
-        _SubFolder = ['HardExodus_92','HardExodus_97','HardExodus_92','HardExodus_97']
-        _names = [test_names,test_names,training_names,training_names]
-        _limitsLow = [testList_lowerlimit,testList_lowerlimit,trainingList_lowerlimit,trainingList_lowerlimit]
-        _limitsHigh = [testList_highlimit,testList_highlimit,trainingList_highlimit,trainingList_highlimit]
+        _Results = [test_hard85,test_hard90, test_hard95,training_hard85,training_hard90, training_hard95]
+        _Folder = ['Test','Test','Test','Train','Train','Train']
+        _SubFolder = ['HardExodus_85','HardExodus_90','HardExodus_95','HardExodus_85','HardExodus_90','HardExodus_95']
+        _names = [test_names,test_names,test_names,training_names,training_names,training_names]
+        _limitsLow = [testList_lowerlimit,testList_lowerlimit,testList_lowerlimit,trainingList_lowerlimit,trainingList_lowerlimit,trainingList_lowerlimit]
+        _limitsHigh = [testList_highlimit,testList_highlimit,testList_highlimit,trainingList_highlimit,trainingList_highlimit,trainingList_highlimit]
         
-        for i in range(0,4):
+        for i in range(0,6):
             data = _Results[i]
             name = _names[i]
             low = _limitsLow[i]
@@ -198,11 +200,15 @@ class pipeline():
         logger.info('Saving Variables. Know you can commet this method')
             
         file = open("variable_save/exodus_out.pickle","wb")
-        pickle.dump(test_hard92, file)
-        pickle.dump(training_hard92, file)
-        pickle.dump(test_hard97, file)
-        pickle.dump(training_hard97, file)
+        pickle.dump(test_hard85, file)
+        pickle.dump(training_hard85, file)
+        pickle.dump(test_hard90, file)
+        pickle.dump(training_hard90, file)
+        pickle.dump(test_hard95, file)
+        pickle.dump(training_hard95, file)
         file.close()
+        
+        logger.success('Exit without errors')
         
  
  
@@ -211,10 +217,12 @@ class pipeline():
         try:
             with open("variable_save/exodus_out.pickle","rb") as file:
                 try:
-                    test_hard92 = pickle.load(file)
-                    training_hard92 = pickle.load(file)
-                    test_hard97 = pickle.load(file)
-                    training_hard97 = pickle.load(file)
+                    test_hard85 = pickle.load(file)
+                    training_hard85 = pickle.load(file)
+                    test_hard90 = pickle.load(file)
+                    training_hard90 = pickle.load(file)
+                    test_hard95 = pickle.load(file)
+                    training_hard95 = pickle.load(file)
                     file.close()
                 except EOFError:
                     logger.error("The pickle file is empty.")
@@ -230,7 +238,7 @@ class pipeline():
                     training_groundthruth_dataset = pickle.load(file)
                     test_groundthruth_dataset = pickle.load(file)
                     
-                    logger.info("Pickle file loaded successfully!")
+                    logger.success("Pickle file loaded successfully!")
                     file.close()
                 except EOFError:
                     logger.error("The pickle file is empty.")
@@ -243,7 +251,7 @@ class pipeline():
         arguments = 100
         #Setting the limits for the data
         testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments,testList_length,trainingList_length)
-        ground92, exodus92, ground, exodus97, training92_sensivities, training97_sensivities, test92_sensivities, test97_sensivities, y_output  = [], [], [], [], [], [] , [], [], []
+        ground, exodus85,exodus90,exodus95, training85_sensivities, training90_sensivities, training95_sensivities,test85_sensivities, test90_sensivities,test95_sensivities, y_output  = [], [], [], [], [], [] , [], [], [], [], []
         
         #Extracting the features trainnig data set
         with tqdm(total=trainingList_highlimit,desc="Feature extraction training data set") as pbar:
@@ -251,56 +259,79 @@ class pipeline():
                 __, imageholder2 = cv2.threshold(training_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
                 imageholder2 = cv2.resize(imageholder2,None,fx=0.40,fy=0.40)       
                 
-                neg_92, pos_92, training92_sensitivity, exodus_ground92, counted92, y_92n, y_92p= self.helpers.evaluate_exodus(training_hard92[i],
+                neg_85, pos_85, training85_sensitivity, exodus_ground85, counted85, y_85n, y_85p= self.helpers.evaluate_exodus(training_hard85[i],
                                                                                                                  imageholder2,
                                                                                                                  training_dataset[i],
-                                                                                                                 i)
-                neg_97, pos_97, training97_sensitivity, exodus_ground97, counted97, y_97n, y_97p = self.helpers.evaluate_exodus(training_hard97[i],
+                                                                                                                 i+1,
+                                                                                                                 85)
+                neg_90, pos_90, training90_sensitivity, exodus_ground90, counted90, y_90n, y_90p = self.helpers.evaluate_exodus(training_hard90[i],
                                                                                                                  imageholder2,
                                                                                                                  training_dataset[i],
-                                                                                                                 i)
+                                                                                                                 i+1,
+                                                                                                                 90)
                 
-                training92_sensivities.append(training92_sensitivity)
-                training97_sensivities.append(training97_sensitivity)
+                neg_95, pos_95, training95_sensitivity, exodus_ground95, counted95, y_95n, y_95p = self.helpers.evaluate_exodus(training_hard95[i],
+                                                                                                                 imageholder2,
+                                                                                                                 training_dataset[i],
+                                                                                                                 i+1,
+                                                                                                                 95)
                 
-                #ground.append(exodus_ground92)
-                exodus92.append(counted92)
+                training85_sensivities.append(training85_sensitivity)
+                training90_sensivities.append(training90_sensitivity)
+                training95_sensivities.append(training95_sensitivity)
+                exodus85.append(counted85)
+                exodus90.append(counted90)
+                exodus95.append(counted95)
                 
-                ground.append(exodus_ground97)
-                exodus97.append(counted97)
+                ground.append(exodus_ground90)
                 
-                
-                df = pd.DataFrame(neg_92)
+                df = pd.DataFrame(neg_85)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('neg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_92n)
+                df = pd.DataFrame(y_85n)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Yneg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(neg_97)
+                df = pd.DataFrame(neg_90)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('neg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_97n)
+                df = pd.DataFrame(y_90n)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Yneg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(pos_92)
+                df = pd.DataFrame(neg_95)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('pos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_92p)
+                df = pd.DataFrame(y_95n)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Ypos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(pos_97)
+                df = pd.DataFrame(pos_85)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('pos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_97p)
+                df = pd.DataFrame(y_85p)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Ypos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(pos_90)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_90p)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(pos_95)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_95p)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
                 pbar.update(1)
         #Extracting the data set
@@ -310,71 +341,109 @@ class pipeline():
                 __, imageholder = cv2.threshold(test_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
                 imageholder = cv2.resize(imageholder,None,fx=0.40,fy=0.40)       
                 
-                neg_92, pos_92, test92_sensitivity, exodus_ground92, counted92, y_92n, y_92p= self.helpers.evaluate_exodus(test_hard92[i],
+                neg_85, pos_85, test85_sensitivity, exodus_ground85, counted85, y_85n, y_85p= self.helpers.evaluate_exodus(test_hard85[i],
                                                                                                              imageholder,
                                                                                                              test_dataset[i],
-                                                                                                             55+i)
-                neg_97, pos_97, test97_sensitivity, exodus_ground97, counted97, y_97n, y_97p= self.helpers.evaluate_exodus(test_hard97[i],
+                                                                                                             55+i,
+                                                                                                             85)
+                neg_90, pos_90, test90_sensitivity, exodus_ground90, counted90, y_90n, y_90p= self.helpers.evaluate_exodus(test_hard90[i],
                                                                                                              imageholder,
                                                                                                              test_dataset[i],
-                                                                                                             55+i)
+                                                                                                             55+i,
+                                                                                                             90)
                 
-                test92_sensivities.append(test92_sensitivity)
-                test97_sensivities.append(test97_sensitivity)
+                neg_95, pos_95, test95_sensitivity, exodus_ground95, counted95, y_95n, y_95p= self.helpers.evaluate_exodus(test_hard95[i],
+                                                                                                             imageholder,
+                                                                                                             test_dataset[i],
+                                                                                                             55+i,
+                                                                                                             95)
+                
+                test85_sensivities.append(test85_sensitivity)
+                test90_sensivities.append(test90_sensitivity)
+                test95_sensivities.append(test95_sensitivity)
                 
                 #ground.append(exodus_ground92)
-                exodus92.append(counted92)
+                exodus85.append(counted85)
+                exodus90.append(counted90)
+                exodus95.append(counted95)
                 
-                ground.append(exodus_ground97)
-                exodus97.append(counted97)
+                ground.append(exodus_ground90)
                 
-                df = pd.DataFrame(neg_92)
+                df = pd.DataFrame(neg_85)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('neg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_92n)
+                df = pd.DataFrame(y_85n)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Yneg_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(neg_97)
+                df = pd.DataFrame(neg_90)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('neg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_97n)
+                df = pd.DataFrame(y_90n)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Yneg_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(pos_92)
+                df = pd.DataFrame(neg_95)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('pos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_92p)
+                df = pd.DataFrame(y_95n)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Ypos_92.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(pos_97)
+                df = pd.DataFrame(pos_85)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('pos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_97p)
+                df = pd.DataFrame(y_85p)
                 df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Ypos_97.csv',mode='a', index=False, header=False,float_format='%.15f')
+                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
+                df = pd.DataFrame(pos_90)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_90p)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(pos_95)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
+                
+                df = pd.DataFrame(y_95p)
+                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
+        
                 pbar.update(1)
         
                 
         logger.info('Saving variables...')
         file = open("variable_save/get_exodus_out.pickle","wb")
-        pickle.dump(training92_sensivities, file)
-        pickle.dump(training97_sensivities, file)
-        pickle.dump(test92_sensivities,file)
-        pickle.dump(test97_sensivities,file)
-        pickle.dump(exodus92,file)
-        pickle.dump(exodus97,file)
-        pickle.dump(ground92,file)
+        pickle.dump(training85_sensivities, file)
+        pickle.dump(training90_sensivities, file)
+        pickle.dump(training95_sensivities, file)
+        pickle.dump(test85_sensivities,file)
+        pickle.dump(test90_sensivities,file)
+        pickle.dump(test95_sensivities,file)
+        pickle.dump(exodus85,file)
+        pickle.dump(exodus90,file)
+        pickle.dump(exodus95,file)
         pickle.dump(ground,file)
-        print(sum(ground))
-        file.close()            
+        file.close()
+        gTh = sum(ground)
+        exodus = sum(exodus85) + sum(exodus90) + sum(exodus95)
+        logger.info('Number of Exodus in Groundthruth: {}'.format(gTh))
+        logger.info('Exodus counted in segmentation process: {}'.format(exodus)) 
+        logger.info('Percentaje recognize {:%}'.format(exodus/gTh))
+        logger.info('Exodus obtain wth Tophat Th 95: {}'.format(sum(exodus85))) 
+        logger.info('Exodus obtain wth Morph Smoothing Th 90: {}'.format(sum(exodus90))) 
+        logger.info('Exodus obtain wth Morph Smoothing Th 95: {}'.format(sum(exodus95)))
+        
+        logger.success('Terminated without any Error') 
+
             
                 
 
@@ -405,31 +474,24 @@ class pipeline():
     def normalize_data(self):
         scaler = MinMaxScaler()
         
-        neg_92 = pd.read_csv('neg_92.csv')
-        pos_92 = pd.read_csv('pos_92.csv')
+        neg = pd.read_csv('Results/neg.csv')
+        pos = pd.read_csv('Results/pos.csv')
         
-        neg_97 = pd.read_csv('neg_97.csv')
-        pos_97 = pd.read_csv('pos_97.csv')
+        neg = scaler.fit_transform(neg)
         
-        neg_92 = scaler.fit_transform(neg_92)
-        neg_97 = scaler.fit_transform(neg_97)
+        pos = scaler.fit_transform(pos)
         
-        pos_92 = scaler.fit_transform(pos_92)
-        pos_97 = scaler.fit_transform(pos_97)
+        np.savetxt("Results/neg.csv",neg,fmt="%f",delimiter=',')
         
-        np.savetxt("neg_92.csv",neg_92,fmt="%f",delimiter=',')
-        np.savetxt("neg_97.csv",neg_97,fmt="%f",delimiter=',')
-        
-        np.savetxt("pos_92.csv",pos_92,fmt="%f",delimiter=',')
-        np.savetxt("pos_97.csv",pos_97,fmt="%f",delimiter=',')
-        
+        np.savetxt("Results/pos.csv",pos,fmt="%f",delimiter=',') 
+               
     def ML(self,
            dataset):
         logger.info('Creating the Machine Learning for {}'.format(dataset))
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
-        negative_data = pd.read_csv('neg_{}.csv'.format(dataset),header=None)
-        positive_data = pd.read_csv('pos_{}.csv'.format(dataset),header=None)
+        negative_data = pd.read_csv('Results/neg.csv',header=None)
+        positive_data = pd.read_csv('Results/pos.csv',header=None)
         
         negative_data = negative_data.reset_index(drop=True)
         positive_data = positive_data.reset_index(drop=True)
@@ -462,8 +524,7 @@ class pipeline():
             {'name': 'Gradient Boosting', 'model': GradientBoostingClassifier(), 'params': param_grid_gb},
             {'name': 'SVM', 'model': SVC(probability=True), 'params': param_grid_svm},
             {'name': 'Naive Bayes','model': GaussianNB(), 'params': param_grid_nb},
-            {'name': 'k-Nearest Neighbors','model': KNeighborsClassifier(), 'params': param_grid_knn},
-            {'name': 'Decision Tree', 'model': DecisionTreeClassifier(), 'params': param_grid_dt},
+            {'name': 'Decision Tree', 'model': DecisionTreeClassifier(), 'params': param_grid_dt}
             ]
 
         # Create an instance of the evaluator

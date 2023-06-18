@@ -1,5 +1,5 @@
 import cv2
-from alive_progress import alive_bar
+from tqdm import tqdm
 import time
 import os
 import numpy as np
@@ -12,8 +12,8 @@ class proj_functions():
     def __init__(self):
         
         self.cfgfile_path = os.path.join(os.getcwd(),'main.cfg')
-        self.subsubfolders = ['Tests','Training']
-        self.subfolders = ['HardExodus_92','HardExodus_97','Prepos']
+        self.subsubfolders = ['Test','Train']
+        self.subfolders = ['HardExodus_85','HardExodus_90','HardExodus_95','Prepos']
         self.currentpath = os.getcwd()
         logger.info(f"Class Initialized: {self.__class__}")
     
@@ -35,11 +35,10 @@ class proj_functions():
     
     def save_images(self,imageList,nameList,folderName,directory,process):
         numberofImages = len(imageList)
-        with alive_bar(total=numberofImages,title="Saving Images "+folderName+" of "+process) as statusbar:
+        with tqdm(total=numberofImages,desc="Saving Images "+folderName+" of "+process) as statusbar:
             for i in range(0,numberofImages):
                 cv2.imwrite(os.path.join(directory,nameList[i]),imageList[i])
-                time.sleep(0.01)
-                statusbar()
+                statusbar.update(1)
     
     def settingLimits(self,argumentsLimit,firstdefaultvalue,seconddefaultvalue):
         if(argumentsLimit==100):
@@ -98,7 +97,7 @@ class proj_functions():
         return sens
     
     
-    def evaluate_exodus(self,exodus,groud_truth,original_image,num):
+    def evaluate_exodus(self,exodus,groud_truth,original_image,num,th):
         
         count = 0 
         contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
@@ -130,8 +129,6 @@ class proj_functions():
             for grnd in ground:
                 im2 = np.zeros_like(exodus)
                 groundTh = cv2.drawContours(im2, [grnd], 0, (255,255,255), -1)
-                if idx == 2:
-                    cv2.imwrite('ground.jpg',groundTh)
                 regions_intersection = cv2.bitwise_and(exodus,groundTh)
                 intersection = np.sum(regions_intersection)
                 if(intersection!=0):
@@ -143,14 +140,14 @@ class proj_functions():
             area_evaluation = np.sum(regions_intersection)/np.sum(regions_union)
                    
             
-            if ( area_evaluation >= 0.1):
+            if ( area_evaluation >= 0.2):
                 positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
                 sensivities_out.append(area_evaluation)
-                y_output_positive.append([num,idx,1,area_evaluation])
+                y_output_positive.append([th,num,idx,1,area_evaluation])
                 count = count + 1
             else:
                 negative_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
-                y_output_negative.append([num,idx,0,area_evaluation])
+                y_output_negative.append([th,num,idx,0,area_evaluation])
                 
                 
             if ( len(sensivities_out) == 0 ):
