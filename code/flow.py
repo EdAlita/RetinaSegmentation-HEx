@@ -474,16 +474,25 @@ class pipeline():
     def normalize_data(self):
         scaler = MinMaxScaler()
         
-        neg = pd.read_csv('Results/neg.csv')
-        pos = pd.read_csv('Results/pos.csv')
         
-        neg = scaler.fit_transform(neg)
+        try:
+            neg = pd.read_csv('Results/neg.csv',header=None)
+            pos = pd.read_csv('Results/pos.csv',header=None)
+            logger.success("Reading the CVS Files Succesfully")
+        except pd.errors.ParserError as e:
+            logger.error("Error ocurred while reading CSV Files:")
+            return
         
-        pos = scaler.fit_transform(pos)
+        merge_data = pd.concat([neg, pos],axis=0)
         
-        np.savetxt("Results/neg.csv",neg,fmt="%f",delimiter=',')
+        normalize_data = scaler.fit_transform(merge_data)
         
-        np.savetxt("Results/pos.csv",pos,fmt="%f",delimiter=',') 
+        
+        np.savetxt("Results/neg.csv",normalize_data[:len(neg)],fmt="%f",delimiter=',')
+        
+        np.savetxt("Results/pos.csv",normalize_data[len(neg):],fmt="%f",delimiter=',')
+        
+        logger.success("Terminated without any Errors")
                
     def ML(self,
            dataset):
