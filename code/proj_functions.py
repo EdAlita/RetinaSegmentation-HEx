@@ -4,13 +4,15 @@ import time
 import os
 import numpy as np
 from feature import feature
-from features_extra import feature_extractor
 from loguru import logger
-class proj_functions():
 
+class proj_functions():
+    """fuctions for the project
+    """
     
     def __init__(self):
-        
+        """Initialization of variables
+        """
         self.cfgfile_path = os.path.join(os.getcwd(),'main.cfg')
         self.subsubfolders = ['Test','Train']
         self.subfolders = ['HardExodus_85','HardExodus_90','HardExodus_95','Prepos']
@@ -18,6 +20,11 @@ class proj_functions():
         logger.info(f"Class Initialized: {self.__class__}")
     
     def get_localDirectories (self):
+        """Returns the locations of the folder to get data sets
+
+        Returns:
+            dir: locatios to the folders
+        """
         
         if not (os.path.exists(self.cfgfile_path)):
             testFolderLocation = os.path.join('..','data','images','test/')
@@ -34,6 +41,15 @@ class proj_functions():
         return testFolderLocation,trainingFolderLocation,trainingGroundTruths,testGroundTruths
     
     def save_images(self,imageList,nameList,folderName,directory,process):
+        """Saves the images in the location folder
+
+        Args:
+            imageList (list): list of the images to save
+            nameList (list): names of the images to save
+            folderName (str): Name of the folder to save
+            directory (dir): Direction of the folder
+            process (str): Name of the process for status bar
+        """
         numberofImages = len(imageList)
         with tqdm(total=numberofImages,desc="Saving Images "+folderName+" of "+process) as statusbar:
             for i in range(0,numberofImages):
@@ -41,6 +57,16 @@ class proj_functions():
                 statusbar.update(1)
     
     def settingLimits(self,argumentsLimit,firstdefaultvalue,seconddefaultvalue):
+        """Set Limits for the list
+
+        Args:
+            argumentsLimit (int): number to select value
+            firstdefaultvalue (int): value to set
+            seconddefaultvalue (int): value to set
+
+        Returns:
+            int: liits to set
+        """
         if(argumentsLimit==100):
             firstlimit=firstdefaultvalue
             secondlimit=seconddefaultvalue
@@ -50,12 +76,22 @@ class proj_functions():
         return firstlimit, secondlimit
     
     def TestTrainnig(self,above_path):
+        """Creates the test and trainnig Folders
+
+        Args:
+            above_path (dir): above folder
+        """
         for element in self.subsubfolders:
             path = os.path.join(above_path,element)
             if not os.path.exists(path):
                 os.mkdir(path)
     
     def SubFolders(self,above_path):
+        """Creates folder to save results
+
+        Args:
+            above_path (dir): above folder
+        """
         for element in self.subfolders:
             path = os.path.join(above_path,element)
             if not os.path.exists(path):
@@ -63,83 +99,82 @@ class proj_functions():
                 self.TestTrainnig(path)
                 
     def file_structure(self):
+        """Creates the file structure
+        """
         Result = os.path.join(self.currentpath,'Results')
         if not (os.path.exists(Result)):
             os.mkdir(Result)
             self.SubFolders(Result)
     
-    def evaluation(self,image,ground_truth):
-        image_zero_bits, image_one_bits, ground_truth_zero_bits, ground_truth_one_bits = [],[],[],[]
-        for i in range(0,image.shape[0]):
-            for j in range(0,image.shape[1]):
-                bit_value_ground_truth = ground_truth[i][j]
-                bit_value_image = image[i][j]
-                if bit_value_ground_truth == 0:
-                    ground_truth_zero_bits.append((i,j))
-                else:
-                    ground_truth_one_bits.append((i,j))
-                if bit_value_image == 0:
-                    image_zero_bits.append((i,j))
-                else:
-                    image_one_bits.append((i,j))
-        true_positive = len(set(image_one_bits).intersection(set(ground_truth_one_bits)))
-        false_negative = len(set(image_zero_bits).intersection(set(ground_truth_zero_bits)))
-        result=0
-        if(true_positive+false_negative) !=0:
-            result = true_positive/(true_positive+false_negative)
-        return result
-    
-    def calc_Sensitivity_Sets(self,truth,pred):
-        true_positive = np.sum(truth)
-        total_groundthruth  = np.sum(truth)
-        sens = true_positive/total_groundthruth
-        #print('sens {} true_positives {} total {}'.format(sens,true_positive,total_groundthruth))
-        return sens
-    
-    
     def evaluate_exodus(self,exodus,groud_truth,original_image,num,th):
+        """Evaluating the exodus candidates from a binary image and extract features
+
+        Args:
+            exodus (binary image): Exodus Segmentation
+            groud_truth (binary mask): Ground thruth of Exodus
+            original_image (img): Original image to extract features
+            num (int): number of the image
+            th (int): number to indentify the segementation
+
+        Returns:
+            list: reuslts list
+        """
         
+        #Get the countours from the binary images
         count = 0 
         contours, _ = cv2.findContours(exodus,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
         ground, _ = cv2.findContours(groud_truth,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
         
+        #id's of the contours
         idx=0
 
+        #Create empty lists
         sensivities_out = []
         negative_exodus = []
         positive_exodus = []
         y_output_negative = []
         y_output_positive = []
+        
+        #Variables to count
         groundThruth = 0         
         count = 0
         
+        #create the feature class
         feature_extraction = feature()
-        groundThruth += len(ground)
-
         
-        for cnt in contours:
+        #assing number of contours
+        groundThruth = len(ground)
 
+        #Analyze every contour encounter in exodus binary image
+        for cnt in contours:
+            #Assing id of the contour and creating a empty image
             idx+=1
             img = np.zeros_like(exodus)
-            exodus = cv2.drawContours(img, [cnt], 0, (255,255,255), -1)
-            #regions_intersection = cv2.bitwise_and(exodus,groud_truth)
             
-            #area_evaluation = self.calc_Sensitivity_Sets(regions_intersection,regions_union)
+            #Draw the exodus a empty image
+            exodus = cv2.drawContours(img, [cnt], 0, (255,255,255), -1)
+            #Get bounding rectangle
             x,y,w,h = cv2.boundingRect(cnt)
+            #Analyze the new image with all the countours inside of the groundthruths
             for grnd in ground:
                 im2 = np.zeros_like(exodus)
+                #Draw each one of the countours in one image
                 groundTh = cv2.drawContours(im2, [grnd], 0, (255,255,255), -1)
+                #Check the intersection of the Exodus and the ground
                 regions_intersection = cv2.bitwise_and(exodus,groundTh)
                 intersection = np.sum(regions_intersection)
+                #check if there is a intersection, if not repeat the cycle
                 if(intersection!=0):
+                    #Assing the union
                     regions_union = cv2.bitwise_or(exodus,groundTh)
                     break
                 else:
                     regions_union = cv2.bitwise_or(exodus,groundTh)
             
+            #Evaluation of the IuO
             area_evaluation = np.sum(regions_intersection)/np.sum(regions_union)
                    
-            
+            #IuO > 0.2 means it is a exodus
             if ( area_evaluation >= 0.2):
                 positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
                 sensivities_out.append(area_evaluation)
@@ -148,12 +183,6 @@ class proj_functions():
             else:
                 negative_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
                 y_output_negative.append([th,num,idx,0,area_evaluation])
-                
-                
-            if ( len(sensivities_out) == 0 ):
-                sens = 0.0
-            else: 
-                sens = sum(sensivities_out)/len(sensivities_out)
             
             sens = 0
               

@@ -21,14 +21,14 @@ class BinaryClassifierEvaluator:
         logger.info(self.__dict__)
         
     
-    def evaluate(self,dataset,test_size=0.2, random_state=123):
+    def evaluate(self,test_size=0.2, random_state=123):
         # Split the dataset into train and test sets
         #X_train, self.X_test, y_train, self.y_test = train_test_split(X_train, y_train, test_size=test_size, random_state=random_state)
         
         # Perform grid search for each classifier and store results
         results = []
         for classifier in self.classifiers:
-            gs = GridSearchCV(classifier['model'], classifier['params'], scoring='accuracy', cv=RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42),verbose=3,n_jobs=-1)
+            gs = GridSearchCV(classifier['model'], classifier['params'], scoring='accuracy', cv=RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42),verbose=1,n_jobs=-1)
             gs.fit(self.X_train, self.y_train)
             best_estimator = gs.best_estimator_
             y_pred = best_estimator.predict_proba(self.X_train)[:, 1]
@@ -48,8 +48,8 @@ class BinaryClassifierEvaluator:
         negative_probabilities_df = pd.DataFrame(negative_probabilities)
 
         # Save the DataFrame to a CSV file
-        negative_probabilities_df.to_csv('negative_probabilities{}.csv'.format(dataset), index=False)
-        positive_probabilities_df.to_csv('positive_probabilities{}.csv'.format(dataset), index=False)
+        negative_probabilities_df.to_csv('Results/negative_probabilities.csv', index=False)
+        positive_probabilities_df.to_csv('Results/positive_probabilities.csv', index=False)
 
         
         logger.info('Saving best Classifiier...')
@@ -64,7 +64,7 @@ class BinaryClassifierEvaluator:
 
         best_clf = self.best_classifier['Best Estimator']
         best_params = best_clf.get_params()
-        best_auc = self.best_classifier['AUPR']
+        best_auc = self.best_classifier['AUC']
 
         print("Best Classifier:")
         print("  Name:", self.best_classifier['Classifier'])
@@ -72,7 +72,7 @@ class BinaryClassifierEvaluator:
         print("  AUPR:", best_auc)
 
     
-    def plot_roc_curve_training(self, dataname):
+    def plot_roc_curve_training(self):
         if self.best_classifier is None:
             print("No best classifier found. Please run evaluate() first.")
             return
@@ -91,8 +91,8 @@ class BinaryClassifierEvaluator:
         plt.ylim([0.0, 1.05])
         plt.xlabel('Recall')
         plt.ylabel('Precissions')
-        plt.title('data_set_{}'.format(dataname))
+        plt.title('Hard Exodus ML')
         plt.legend(loc="lower right")
-        plt.savefig('Results/data_set_{}.png'.format(dataname))
+        plt.savefig('Results/ml_results.png')
             
     

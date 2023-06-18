@@ -41,7 +41,7 @@ class preprocessing():
         """Do the complete process for the full dataset
 
         Returns:
-            list: of aimages applied the Clahe and Denosing
+            list: of Images applied the Clahe and Denosing
         """
         
         with tqdm(total=self.data_length,desc="Clahe "+self.dataname) as statusbar:

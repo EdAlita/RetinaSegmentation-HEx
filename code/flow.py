@@ -1,33 +1,27 @@
-import cv2,time,os,argparse
+import cv2,os
 from proj_functions import proj_functions
 from preposcessing import preprocessing
 from hard_exodus import HardExodus
-from feature import feature
 from loguru import logger
 from machine_learning import BinaryClassifierEvaluator
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from alive_progress import alive_bar
 import pickle
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 import warnings 
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
 
 
 class pipeline():
     def __init__(self):
         """Init for the pipeline of the code
         """
-        #self.parser = argparse.ArgumentParser("Project to detected Hard Exodus")
-        #self.parser.add_argument("-ll","--lowerlimit", default=100,help='Gives the lower limit to cut the data. Default value is the entire array of Data')
-        #self.parser.add_argument("-lh","--highlimit", default=100,help='Gives the higher limit to cut the data. Default value is the entire array of Data')
         self.currentpath = os.getcwd()
         self.helpers = proj_functions()
         
@@ -38,9 +32,8 @@ class pipeline():
         """
         #Empty list to save the data
         training_dataset, test_dataset, training_groundthruth_dataset, test_groundthruth_dataset = [], [], [], []
-        #Geting all the the args
-        #arguments = self.parser.parse_args()
-        arguments = 100
+        
+        #Create file Structure for saving images
         self.helpers.file_structure()
         
         #Open file to obtain local path to the data field
@@ -59,12 +52,12 @@ class pipeline():
         test_groundtruths_names.sort()
         
         #Getting length of the data
-        testList_length = 25
-        trainingList_length = 54
+        testList_length = len(test_names)
+        trainingList_length = len(training_names)
         
         #Setting the limits for the data
-        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(arguments,0,0)
-        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments,testList_length,trainingList_length)
+        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(100,0,0)
+        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(100,testList_length,trainingList_length)
         
         #Reading all the images and append it to the empty list
         for i in range(0,testList_length):
@@ -74,7 +67,6 @@ class pipeline():
             test_groundthruth_dataset.append(
                 cv2.imread(test_groundtruths_path+test_groundtruths_names[i],cv2.IMREAD_UNCHANGED)
             )
-        
         for i in range(0,trainingList_length):
             training_dataset.append(
                 cv2.imread(training_path+training_names[i],cv2.COLOR_BGR2RGB)
@@ -83,7 +75,7 @@ class pipeline():
                 cv2.imread(training_groundtruths_path+training_groundtruths_names[i],cv2.IMREAD_UNCHANGED)
             )
         
-        #Get all the preprocesing of the data
+        #Construct of preprocessing classes
         test_prepos = preprocessing(
             "Test",
             test_dataset[testList_lowerlimit:testList_highlimit]
@@ -92,16 +84,20 @@ class pipeline():
             "Training",
             training_dataset[trainingList_lowerlimit:trainingList_highlimit]   
         )
+        #Getting the preprocessing of the imges
+        
         test_denoising = test_prepos.get_Prepocessing()
         training_denoising = training_prepos.get_Prepocessing()
         
         #Saving the Images
+        
         self.helpers.save_images(
             test_denoising[testList_lowerlimit:testList_highlimit],
             test_names[testList_lowerlimit:testList_highlimit],
             "Test",
             os.path.join(self.currentpath,'Results','Prepos','Test'),
             "Prepos")
+        
         self.helpers.save_images(
             training_denoising[trainingList_lowerlimit:trainingList_highlimit],
             training_names[trainingList_lowerlimit:trainingList_highlimit],
@@ -133,9 +129,9 @@ class pipeline():
         
         
     def hard_exodus_extraction_treshHold(self):
-        """Extracting the hard exodus with threshHolding and binarization
+        """Extracting the hard exodus
         """
-        #Getting the variables that are save
+        #Getting the variables that are save in pickle files
         try:
             with open("variable_save/Global_Variables.pickle", "rb") as file:
                 try:
@@ -151,18 +147,15 @@ class pipeline():
                 test_denoising = pickle.load(file)
                 training_denoising = pickle.load(file)
                 file.close()
-                
         except FileNotFoundError:
             logger.error("The pickle file does not exist.")
             logger.error("Run the Preposeccing step first")
         
-        ##Geting all the the args
-        arguments = 100
-        #setting the limits of the dataset
-        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(arguments,0,0)
-        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments,testList_length,trainingList_length)
+        #Setting the limits of the dataset
+        testList_lowerlimit,trainingList_lowerlimit = self.helpers.settingLimits(100,0,0)
+        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(100,testList_length,trainingList_length)
         
-        ###Hard Exodus
+        #Construct of the classes
         test_Exodus = HardExodus(
             "Test",
             test_denoising[testList_lowerlimit:testList_highlimit]
@@ -173,7 +166,7 @@ class pipeline():
             training_denoising[trainingList_lowerlimit:trainingList_highlimit]
             )
         
-        
+        #Creating the Segmentation for Hard Exodus
         test_hard85,test_hard90, test_hard95  = test_Exodus.getHardExodus([95,90,95])
         training_hard85,training_hard90, training_hard95 = training_Exodus.getHardExodus([95,90,95])
         
@@ -196,6 +189,8 @@ class pipeline():
                                      name[low:high],
                                      _Folder[i],
                                      os.path.join(self.currentpath,'Results',_SubFolder[i],_Folder[i]),_SubFolder[i])
+            
+        
             
         logger.info('Saving Variables. Know you can commet this method')
             
@@ -247,10 +242,8 @@ class pipeline():
             logger.error("The pickle file does not exist.")
             logger.error("Run the Preposeccing step first")
             
-        ##Geting all the the args
-        arguments = 100
         #Setting the limits for the data
-        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(arguments,testList_length,trainingList_length)
+        testList_highlimit,trainingList_highlimit = self.helpers.settingLimits(100,testList_length,trainingList_length)
         ground, exodus85,exodus90,exodus95, training85_sensivities, training90_sensivities, training95_sensivities,test85_sensivities, test90_sensivities,test95_sensivities, y_output  = [], [], [], [], [], [] , [], [], [], [], []
         
         #Extracting the features trainnig data set
@@ -362,7 +355,6 @@ class pipeline():
                 test90_sensivities.append(test90_sensitivity)
                 test95_sensivities.append(test95_sensitivity)
                 
-                #ground.append(exodus_ground92)
                 exodus85.append(counted85)
                 exodus90.append(counted90)
                 exodus95.append(counted95)
@@ -443,37 +435,10 @@ class pipeline():
         logger.info('Exodus obtain wth Morph Smoothing Th 95: {}'.format(sum(exodus95)))
         
         logger.success('Terminated without any Error') 
-
-            
-                
-
-    
-    def print_data(self):
-        
-        for i in range(0, len(self.training97_sensivities)):    
-            print('IDiD_0{} Sensivities_Avg_Selected_Hard_Exodus: Percen_92: {:%} Percen_97: {:%}'.format(
-                i+1,
-                training92_sensivities[i],
-                training97_sensivities[i]))
-        
-        print('Average sensivity Selected_Hard_exodus: Percen_92 {:%} Percen_97 {:%}'.format(
-            sum(training92_sensivities)/len(training92_sensivities),
-            sum(training97_sensivities)/len(training97_sensivities)))
-
-        for i in range(0,len(ground92)):
-            print('0{} Percentaje of Exodus Recognize: Exodus_92 {:%}'.format(
-                i+1,
-                exodus92[i]/ground92[i]))
-            
-        for i in range(0,len(ground97)):
-            print('0{} Percentaje of Exodus Recognize: Exodus_97 {:%}'.format(
-                i+1,
-                exodus97[i]/ground97[i]))
-        
-        
+     
+      
     def normalize_data(self):
         scaler = MinMaxScaler()
-        
         
         try:
             neg = pd.read_csv('Results/neg.csv',header=None)
@@ -494,9 +459,8 @@ class pipeline():
         
         logger.success("Terminated without any Errors")
                
-    def ML(self,
-           dataset):
-        logger.info('Creating the Machine Learning for {}'.format(dataset))
+    def ML(self):
+        logger.info('Creating the Machine Learning')
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
         negative_data = pd.read_csv('Results/neg.csv',header=None)
@@ -504,11 +468,12 @@ class pipeline():
         
         negative_data = negative_data.reset_index(drop=True)
         positive_data = positive_data.reset_index(drop=True)
-        print("Columns of X_train:")
-        print(negative_data.columns)
+        
+        logger.debug("Columns of neg:")
+        logger.debug(negative_data.columns)
 
-        print("\nColumns of X_test:")
-        print(positive_data.columns)
+        logger.debug("\nColumns of pos:")
+        logger.debug(positive_data.columns)
         
         # Combine negative and positive data into X_train and y_train
         X_train = pd.concat([negative_data, positive_data],axis=0)
@@ -518,11 +483,8 @@ class pipeline():
         # Define the parameter grid for each classifier
         param_grid_lr = {'C': [0.01, 0.1, 1, 10, 100], 'max_iter': [1000000]}
         param_grid_rf = {'n_estimators': [50, 100, 200], 'random_state': [42]}
-        param_grid_gb = {'n_estimators': [50, 100, 200], 'learning_rate': [0.1, 0.01], 'max_depth': [3, 5, 10]}
-        param_grid_svm = {'gamma': [0.5],'C': [0.1, 1, 10], 'kernel': ['linear', 'rbf']}
         param_grid_nb = {'var_smoothing': [1e-9, 1e-8, 1e-7],}
         param_grid_knn = {'n_neighbors': [3,4,5,7],'weights': ['uniform', 'distance'],'algorithm': ['ball_tree', 'kd_tree']}
-        param_grid_dt = {'criterion': ['gini', 'entropy'], 'max_depth': [3, 5, 10], 'min_samples_split': [2, 5, 10]}
 
 
 
@@ -530,30 +492,28 @@ class pipeline():
         classifiers = [
             {'name': 'Logistic Regression', 'model': LogisticRegression(), 'params': param_grid_lr},
             {'name': 'Random Forest', 'model': RandomForestClassifier(), 'params': param_grid_rf},
-            {'name': 'Gradient Boosting', 'model': GradientBoostingClassifier(), 'params': param_grid_gb},
-            {'name': 'SVM', 'model': SVC(probability=True), 'params': param_grid_svm},
             {'name': 'Naive Bayes','model': GaussianNB(), 'params': param_grid_nb},
-            {'name': 'Decision Tree', 'model': DecisionTreeClassifier(), 'params': param_grid_dt}
+            {'name': 'K-neighbors','model': KNeighborsClassifier(), 'params': param_grid_knn}
             ]
 
         # Create an instance of the evaluator
         evaluator = BinaryClassifierEvaluator(classifiers,X_train,y_train)
 
         # Run evaluation on the dataset
-        evaluator.evaluate(dataset)
+        evaluator.evaluate()
 
         # Print the results
-        #print(evaluator.results)
+        print(evaluator.results)
         
         # Print information about the best classifier
         evaluator.print_best_classifier_info()
 
         # Plot ROC curve for the best classifier
-        #evaluator.plot_roc_curve('97',X_test,Y_test.values.ravel())
         
-        evaluator.plot_roc_curve_training(dataset)
-        
-        #evaluator.plot_roc_curve_test_data('97',X_test)
+        evaluator.plot_roc_curve_training()
+                
+        logger.success('Terminated without any Error') 
+
 
 
 

@@ -28,6 +28,15 @@ class HardExodus():
         
         
     def hardExodus2(self, img, th):
+        """Creates the Segmentation for the small exodus
+
+        Args:
+            img (image): Image to analyze from prepocessing
+            th (int): treshold for binarizing
+
+        Returns:
+            binary_image: binarization of the exodus
+        """
 
         # Create kernels for different directions
         kernel_horizontal = np.zeros((self.kernel_size, self.kernel_size), dtype=np.uint8)
@@ -53,10 +62,8 @@ class HardExodus():
         return tresh
 
         
-    
-        
     def hardExodus(self,img, threshold, kernel):
-        """First flow for obtaning the exodus
+        """Creates the Segmentation for the big exodus
         Args:
             img (image): image with preprosesing
             threshold (int): integer for the threshold to binarization
@@ -72,7 +79,7 @@ class HardExodus():
     def getHardExodus(self,thresholdList):
         """Get all the exodus of the multy flow
         Args:
-            thresholdList (list): two element list to get the exodus
+            thresholdList (list): 3 element list to get the exodus
         Returns:
             lists: lists with the multiple results
         """
