@@ -10,10 +10,10 @@ from tqdm import tqdm
 import pickle
 from sklearn.preprocessing import MinMaxScaler
 import warnings 
+from aurp_curve import aurp_curve
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -472,7 +472,7 @@ class pipeline():
         logger.debug("Columns of neg:")
         logger.debug(negative_data.columns)
 
-        logger.debug("\nColumns of pos:")
+        logger.debug("Columns of pos:")
         logger.debug(positive_data.columns)
         
         # Combine negative and positive data into X_train and y_train
@@ -514,6 +514,19 @@ class pipeline():
                 
         logger.success('Terminated without any Error') 
 
+    def evaluated_Seg(self):
+        
+        evaluator = aurp_curve()
+        
+        data = evaluator.get_data('positive_probabilities.csv')
+        
+        p, r = evaluator.calculate_precision_recall_curve(data.values)
+        
+        p.sort()
+        
+        auc = np.trapz(r,p)
+
+        evaluator.get_aurp_curve(p, r,'ML',auc)
 
 
 

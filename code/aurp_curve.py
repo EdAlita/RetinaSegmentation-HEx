@@ -36,7 +36,7 @@ class aurp_curve():
             tp = np.sum(positive_scores >= threshold)
             fp = np.sum(positive_scores < threshold)
 
-            recall  = tp / self.calculate_precision_recall_curve
+            recall  = tp / self.total_groundThruth
             precision = tp / (tp + fp)
 
             precisions.append(precision)
@@ -44,16 +44,19 @@ class aurp_curve():
             
         return np.array(precisions), np.array(recalls) 
        
-    def get_aurp_curve(self,precisions,recalls,origin):
-        
+    def get_aurp_curve(self,precisions,recalls,origin,auc):
+        plt.figure()
+        plt.plot(recalls,precisions, label='AUPR: {:%}'.format(auc))
         plt.xlabel("Recall")
         plt.ylabel("Precision")
         plt.title("Precision-Recall {}".format(origin))
+        plt.legend(loc='best')
         plt.show()
         plt.figure()
         plt.xlabel("")
         plt.ylabel("Treshold")
-        plt.plot(recalls)
-        plt.plot(precisions)
+        plt.plot(recalls, label = 'Recall')
+        plt.plot(precisions, label = 'Presicion')
+        plt.legend(loc='best')
         plt.show()
         return None
