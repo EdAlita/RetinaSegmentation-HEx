@@ -31,8 +31,7 @@ class preprocessing():
         Returns:
             g: 1 channel image in grayscale
         """
-        imageholder = cv2.resize(img,None,fx=0.40,fy=0.40)
-        (R, G, B) = cv2.split(imageholder) 
+        (R, G, B) = cv2.split(img) 
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(10,10))
         G = clahe.apply(G)
         return G

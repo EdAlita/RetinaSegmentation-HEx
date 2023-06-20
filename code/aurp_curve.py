@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 class aurp_curve():
     def __init__(self):
-        self.total_groundThruth = 10488
+        self.total_groundThruth = 11324
         
     def get_data_UNICASML(self,pos_file):
         data = pd.read_csv('Results/{}'.format(pos_file),delimiter='	')

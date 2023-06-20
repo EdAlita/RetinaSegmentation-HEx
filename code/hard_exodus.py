@@ -23,7 +23,7 @@ class HardExodus():
         self.result3 = []
         self.kernel = np.ones((2,2),np.uint8)
         self.data_length = len(data)
-        self.kernel_size = 10
+        self.kernel_size = 30
         logger.info(f"Class Initialized: {self.__class__}")
         
         
@@ -56,7 +56,7 @@ class HardExodus():
 
         # Combine the top-hat results using bitwise OR
         final_result = cv2.bitwise_or(cv2.bitwise_or(tophat_horizontal, tophat_vertical),cv2.bitwise_or(tophat_diagonal_ne_sw, tophat_diagonal_nw_se))
-        opening = cv2.morphologyEx(final_result, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3)))
+        opening = cv2.morphologyEx(final_result, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))
         _, tresh = cv2.threshold(opening,np.percentile(opening,th),255,cv2.THRESH_BINARY)
         
         return tresh
@@ -71,8 +71,8 @@ class HardExodus():
             binary_image: binarization of the exodus
         """
         _, tresh = cv2.threshold(img,np.percentile(img,threshold),255,cv2.THRESH_BINARY)
-        Dilate = cv2.dilate(tresh, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6)), iterations=1)
-        Opening = cv2.morphologyEx(Dilate,cv2.MORPH_OPEN,kernel,iterations=1)
+        #Dilate = cv2.dilate(tresh, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3)), iterations=1)
+        Opening = cv2.morphologyEx(tresh,cv2.MORPH_OPEN,kernel,iterations=1)
         Closing = cv2.morphologyEx(Opening,cv2.MORPH_CLOSE,kernel,iterations=1)   
         return Closing
     
@@ -85,9 +85,13 @@ class HardExodus():
         """
         with tqdm(total=self.data_length,desc="Hard Exodus Extraction "+self.dataname) as pbar:
             for i in range(0,self.data_length):
-                self.result.append(self.hardExodus2(self.hardexodus[i],thresholdList[0]))
-                self.result2.append(self.hardExodus(self.hardexodus[i],thresholdList[1],cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6))))
-                self.result3.append(self.hardExodus(self.hardexodus[i],thresholdList[2],cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6))))
+                
+                img1 = self.hardExodus2(self.hardexodus[i],thresholdList[0])
+                self.result.append(img1)
+                ip=self.hardExodus(self.hardexodus[i],thresholdList[1],cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(6,6)))
+                img2 = self.hardExodus(self.hardexodus[i],thresholdList[2],cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3)))
+                self.result2.append(img2)
+                self.result3.append(cv2.bitwise_or(img1,img2))
                 pbar.update(1)
                 
         return self.result, self.result2, self.result3

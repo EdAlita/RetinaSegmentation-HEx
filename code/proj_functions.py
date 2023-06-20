@@ -152,30 +152,36 @@ class proj_functions():
             img = np.zeros_like(exodus)
             
             #Draw the exodus a empty image
-            exodus = cv2.drawContours(img, [cnt], 0, (255,255,255), -1)
+            exodus_img = cv2.drawContours(img, [cnt], 0, (255,255,255), -1)
             #Get bounding rectangle
             x,y,w,h = cv2.boundingRect(cnt)
-            #Analyze the new image with all the countours inside of the groundthruths
-            for grnd in ground:
-                im2 = np.zeros_like(exodus)
-                #Draw each one of the countours in one image
-                groundTh = cv2.drawContours(im2, [grnd], 0, (255,255,255), -1)
-                #Check the intersection of the Exodus and the ground
-                regions_intersection = cv2.bitwise_and(exodus,groundTh)
-                intersection = np.sum(regions_intersection)
-                #check if there is a intersection, if not repeat the cycle
-                if(intersection!=0):
-                    #Assing the union
-                    regions_union = cv2.bitwise_or(exodus,groundTh)
-                    break
-                else:
-                    regions_union = cv2.bitwise_or(exodus,groundTh)
+            # Analyze the new image with all the contours inside the ground truths
+            if np.sum(cv2.bitwise_and(exodus_img,groud_truth)) != 0:
+                for grnd in ground:
+                    im2 = np.zeros_like(exodus)
+                    
+                    # Draw each one of the contours in one image
+                    groundTh = cv2.drawContours(im2, [grnd], 0, (255, 255, 255), -1)
+                    
+                    # Check the intersection of the Exodus and the ground
+                    regions_intersection = cv2.bitwise_and(exodus_img, groundTh)
+                    intersection = np.sum(regions_intersection)
+                    
+                    # Check if there is an intersection, if not repeat the cycle
+                    if intersection != 0:
+                        regions_union = cv2.bitwise_or(exodus_img, groundTh)
+                        union = np.sum(regions_union)
+                        break
+            else:
+                intersection = 0
+                union = 10
             
-            #Evaluation of the IuO
-            area_evaluation = np.sum(regions_intersection)/np.sum(regions_union)
+            # Evaluation of the IoU
+            area_evaluation = intersection / union
+        
                    
             #IuO > 0.2 means it is a exodus
-            if ( area_evaluation >= 0.2):
+            if ( area_evaluation >= 0.1):
                 positive_exodus.append(feature_extraction.calculate_glcms(cv2.cvtColor(original_image[y:y+h,x:x+w], cv2.COLOR_RGB2GRAY)))
                 sensivities_out.append(area_evaluation)
                 y_output_positive.append([th,num,idx,1,area_evaluation])

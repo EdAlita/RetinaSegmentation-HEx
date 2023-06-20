@@ -22,13 +22,10 @@ class BinaryClassifierEvaluator:
         
     
     def evaluate(self,test_size=0.2, random_state=123):
-        # Split the dataset into train and test sets
-        #X_train, self.X_test, y_train, self.y_test = train_test_split(X_train, y_train, test_size=test_size, random_state=random_state)
-        
         # Perform grid search for each classifier and store results
         results = []
         for classifier in self.classifiers:
-            gs = GridSearchCV(classifier['model'], classifier['params'], scoring='accuracy', cv=RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42),verbose=1,n_jobs=-1)
+            gs = GridSearchCV(classifier['model'], classifier['params'], scoring='accuracy', cv=RepeatedStratifiedKFold(n_splits=10, n_repeats=2, random_state=42),verbose=10,n_jobs=-1)
             gs.fit(self.X_train, self.y_train)
             best_estimator = gs.best_estimator_
             y_pred = best_estimator.predict_proba(self.X_train)[:, 1]
@@ -94,5 +91,6 @@ class BinaryClassifierEvaluator:
         plt.title('Hard Exodus ML')
         plt.legend(loc="lower right")
         plt.savefig('Results/ml_results.png')
+        
             
     

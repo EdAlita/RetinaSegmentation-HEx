@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import pickle
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import warnings 
 from aurp_curve import aurp_curve
 from sklearn.exceptions import ConvergenceWarning
@@ -16,6 +16,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+
 
 
 class pipeline():
@@ -167,8 +169,8 @@ class pipeline():
             )
         
         #Creating the Segmentation for Hard Exodus
-        test_hard85,test_hard90, test_hard95  = test_Exodus.getHardExodus([95,90,95])
-        training_hard85,training_hard90, training_hard95 = training_Exodus.getHardExodus([95,90,95])
+        test_hard85,test_hard90, test_hard95  = test_Exodus.getHardExodus([97,90,98])
+        training_hard85,training_hard90, training_hard95 = training_Exodus.getHardExodus([97,90,98])
         
         
         #Saving the images of the results
@@ -247,170 +249,71 @@ class pipeline():
         ground, exodus85,exodus90,exodus95, training85_sensivities, training90_sensivities, training95_sensivities,test85_sensivities, test90_sensivities,test95_sensivities, y_output  = [], [], [], [], [], [] , [], [], [], [], []
         
         #Extracting the features trainnig data set
-        with tqdm(total=trainingList_highlimit,desc="Feature extraction training data set") as pbar:
-            for i in range(0,trainingList_highlimit):
-                __, imageholder2 = cv2.threshold(training_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
-                imageholder2 = cv2.resize(imageholder2,None,fx=0.40,fy=0.40)       
-                
-                neg_85, pos_85, training85_sensitivity, exodus_ground85, counted85, y_85n, y_85p= self.helpers.evaluate_exodus(training_hard85[i],
-                                                                                                                 imageholder2,
-                                                                                                                 training_dataset[i],
-                                                                                                                 i+1,
-                                                                                                                 85)
-                neg_90, pos_90, training90_sensitivity, exodus_ground90, counted90, y_90n, y_90p = self.helpers.evaluate_exodus(training_hard90[i],
-                                                                                                                 imageholder2,
-                                                                                                                 training_dataset[i],
-                                                                                                                 i+1,
-                                                                                                                 90)
-                
-                neg_95, pos_95, training95_sensitivity, exodus_ground95, counted95, y_95n, y_95p = self.helpers.evaluate_exodus(training_hard95[i],
+        for i in range(0,trainingList_highlimit):
+            __, imageholder2 = cv2.threshold(training_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
+                                
+            neg_95, pos_95, training95_sensitivity, exodus_ground95, counted95, y_95n, y_95p = self.helpers.evaluate_exodus(training_hard95[i],
                                                                                                                  imageholder2,
                                                                                                                  training_dataset[i],
                                                                                                                  i+1,
                                                                                                                  95)
+            training95_sensivities.append(training95_sensitivity)
+
+            exodus95.append(counted95)
+            ground.append(exodus_ground95)
                 
-                training85_sensivities.append(training85_sensitivity)
-                training90_sensivities.append(training90_sensitivity)
-                training95_sensivities.append(training95_sensitivity)
-                exodus85.append(counted85)
-                exodus90.append(counted90)
-                exodus95.append(counted95)
+            logger.debug('Percentaje of recognition IDRID_{}: {:%}'.format(i,counted95/exodus_ground95))
+            df = pd.DataFrame(neg_95)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                ground.append(exodus_ground90)
+            df = pd.DataFrame(y_95n)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
+
+            df = pd.DataFrame(pos_95)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(neg_85)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_85n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(neg_90)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_90n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(neg_95)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_95n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(pos_85)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_85p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(pos_90)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_90p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(pos_95)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_95p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                pbar.update(1)
+            df = pd.DataFrame(y_95p)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
         #Extracting the data set
         
-        with tqdm(total=testList_length,desc="Feature extraction test data set") as pbar:
-            for i in range(0,testList_length):
-                __, imageholder = cv2.threshold(test_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
-                imageholder = cv2.resize(imageholder,None,fx=0.40,fy=0.40)       
+        for i in range(0,testList_length):
+            __, imageholder = cv2.threshold(test_groundthruth_dataset[i],0,255,cv2.THRESH_BINARY)
                 
-                neg_85, pos_85, test85_sensitivity, exodus_ground85, counted85, y_85n, y_85p= self.helpers.evaluate_exodus(test_hard85[i],
-                                                                                                             imageholder,
-                                                                                                             test_dataset[i],
-                                                                                                             55+i,
-                                                                                                             85)
-                neg_90, pos_90, test90_sensitivity, exodus_ground90, counted90, y_90n, y_90p= self.helpers.evaluate_exodus(test_hard90[i],
-                                                                                                             imageholder,
-                                                                                                             test_dataset[i],
-                                                                                                             55+i,
-                                                                                                             90)
-                
-                neg_95, pos_95, test95_sensitivity, exodus_ground95, counted95, y_95n, y_95p= self.helpers.evaluate_exodus(test_hard95[i],
+
+            neg_95, pos_95, test95_sensitivity, exodus_ground95, counted95, y_95n, y_95p= self.helpers.evaluate_exodus(test_hard95[i],
                                                                                                              imageholder,
                                                                                                              test_dataset[i],
                                                                                                              55+i,
                                                                                                              95)
                 
-                test85_sensivities.append(test85_sensitivity)
-                test90_sensivities.append(test90_sensitivity)
-                test95_sensivities.append(test95_sensitivity)
+            test95_sensivities.append(test95_sensitivity)
                 
-                exodus85.append(counted85)
-                exodus90.append(counted90)
-                exodus95.append(counted95)
+
+            exodus95.append(counted95)
                 
-                ground.append(exodus_ground90)
+            ground.append(exodus_ground95)
+            
+            logger.debug('Percentaje of recognition IDRID_{}: {:%}'.format(i,counted95/exodus_ground95))
+
+            df = pd.DataFrame(neg_95)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(neg_85)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
+            df = pd.DataFrame(y_95n)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
+
+            df = pd.DataFrame(pos_95)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
                 
-                df = pd.DataFrame(y_85n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(neg_90)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_90n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(neg_95)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/neg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_95n)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Yneg.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(pos_85)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_85p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(pos_90)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_90p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(pos_95)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/pos.csv',mode='a', index=False, header=False,float_format='%.15f')
-                
-                df = pd.DataFrame(y_95p)
-                df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
-                df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')
-        
-                pbar.update(1)
-        
+            df = pd.DataFrame(y_95p)
+            df = df.applymap(lambda x: x.strip('[]') if isinstance(x, str) else x)
+            df.to_csv('Results/Ypos.csv',mode='a', index=False, header=False,float_format='%.15f')        
                 
         logger.info('Saving variables...')
         file = open("variable_save/get_exodus_out.pickle","wb")
@@ -425,20 +328,19 @@ class pipeline():
         pickle.dump(exodus95,file)
         pickle.dump(ground,file)
         file.close()
-        gTh = sum(ground)
-        exodus = sum(exodus85) + sum(exodus90) + sum(exodus95)
+        gTh = 10488
+        exodus = sum(exodus95)
         logger.info('Number of Exodus in Groundthruth: {}'.format(gTh))
         logger.info('Exodus counted in segmentation process: {}'.format(exodus)) 
         logger.info('Percentaje recognize {:%}'.format(exodus/gTh))
-        logger.info('Exodus obtain wth Tophat Th 95: {}'.format(sum(exodus85))) 
-        logger.info('Exodus obtain wth Morph Smoothing Th 90: {}'.format(sum(exodus90))) 
-        logger.info('Exodus obtain wth Morph Smoothing Th 95: {}'.format(sum(exodus95)))
+        logger.info('Exodus obtain: {}'.format(sum(exodus95)))
         
         logger.success('Terminated without any Error') 
      
       
     def normalize_data(self):
         scaler = MinMaxScaler()
+        scaler2 = StandardScaler()
         
         try:
             neg = pd.read_csv('Results/neg.csv',header=None)
@@ -450,12 +352,13 @@ class pipeline():
         
         merge_data = pd.concat([neg, pos],axis=0)
         
+        #normalize_data = scaler2.fit_transform(merge_data)
         normalize_data = scaler.fit_transform(merge_data)
+
         
+        np.savetxt("Results/neg_norm2.csv",normalize_data[:len(neg)],fmt="%f",delimiter=',')
         
-        np.savetxt("Results/neg.csv",normalize_data[:len(neg)],fmt="%f",delimiter=',')
-        
-        np.savetxt("Results/pos.csv",normalize_data[len(neg):],fmt="%f",delimiter=',')
+        np.savetxt("Results/pos_norm2.csv",normalize_data[len(neg):],fmt="%f",delimiter=',')
         
         logger.success("Terminated without any Errors")
                
@@ -463,7 +366,7 @@ class pipeline():
         logger.info('Creating the Machine Learning')
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
-        negative_data = pd.read_csv('Results/neg.csv',header=None)
+        negative_data = pd.read_csv('Results/neg_reduce.csv',header=None)
         positive_data = pd.read_csv('Results/pos.csv',header=None)
         
         negative_data = negative_data.reset_index(drop=True)
@@ -482,18 +385,20 @@ class pipeline():
         
         # Define the parameter grid for each classifier
         param_grid_lr = {'C': [0.01, 0.1, 1, 10, 100], 'max_iter': [1000000]}
-        param_grid_rf = {'n_estimators': [50, 100, 200], 'random_state': [42]}
+        param_grid_rf = {'n_estimators': [50]}
         param_grid_nb = {'var_smoothing': [1e-9, 1e-8, 1e-7],}
-        param_grid_knn = {'n_neighbors': [3,4,5,7],'weights': ['uniform', 'distance'],'algorithm': ['ball_tree', 'kd_tree']}
+        param_grid_knn = {'n_neighbors': [3,4,5,7]}
+        param_grid_svm = {'gamma': [0.5],'C': [0.1, 1, 10], 'kernel': ['rbf']}
+
 
 
 
         # Create a list of classifiers to evaluate
         classifiers = [
             {'name': 'Logistic Regression', 'model': LogisticRegression(), 'params': param_grid_lr},
-            {'name': 'Random Forest', 'model': RandomForestClassifier(), 'params': param_grid_rf},
             {'name': 'Naive Bayes','model': GaussianNB(), 'params': param_grid_nb},
-            {'name': 'K-neighbors','model': KNeighborsClassifier(), 'params': param_grid_knn}
+            {'name': 'K-neighbors','model': KNeighborsClassifier(), 'params': param_grid_knn},
+            {'name': 'SVM', 'model': SVC(probability=True), 'params': param_grid_svm},
             ]
 
         # Create an instance of the evaluator
